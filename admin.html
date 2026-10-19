@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Administration – AURIAM HOME</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<style>
+.ad{max-width:900px;margin:0 auto;padding:16px}
+.ad h1{font-size:24px;margin:8px 0 14px}
+.ad .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ad .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.ad .row{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+.ad .row img,.ad .row .z{width:64px;height:48px;object-fit:cover;border-radius:6px;background:#EAE5DA;flex:none}
+.ad .row .m{flex:1;min-width:0}
+.ad .row .m b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad .row .m small{color:var(--mut)}
+.ad label{display:block;font-size:13px;font-weight:600;margin:14px 0 4px}
+.ad input[type=text],.ad input[type=email],.ad input[type=password],.ad input[type=number],.ad textarea,.ad select{width:100%;min-height:46px;border:1px solid #C9C1B2;border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;background:#fff;color:var(--txt)}
+.ad textarea{min-height:110px}
+.ad .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ad .card2{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.ad .sm{min-height:38px;padding:6px 12px;font-size:13px;border-radius:8px}
+.ad .btn.dn{background:#B3261E;color:#fff}
+.ad .btn.gh{background:#fff;border:1px solid #C9C1B2;color:var(--txt)}
+.ad .ph2{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.ad .ph2 div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center}
+.ad .ph2 img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
+.ad .ph2 .a{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.ad .ph2 .a button{min-width:34px;min-height:34px;border:1px solid #C9C1B2;background:#fff;border-radius:6px;font-size:14px}
+.ad .msg{padding:10px 14px;border-radius:8px;margin:10px 0;font-size:14px}
+.ad .msg.ok{background:#E3F4EA;color:#14693A}.ad .msg.er{background:#FBE5E3;color:#8C1D18}
+.ad .hint{font-size:12px;color:var(--mut);margin-top:4px}
+.ad .chk{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:15px}
+.ad .chk input{width:22px;height:22px}
+</style>
+</head>
+<body>
+<div id="adm"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
