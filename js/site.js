@@ -187,7 +187,22 @@
     if (D.tem.length) h += '<section class="wrap sec"><h2>' + esc(t().temT) + '</h2><div id="tm">' + temHtml() + '</div></section>';
     h += '<section class="wrap sec" style="max-width:820px"><h2>' + esc(t().faqT) + '</h2>' + t().faq.map(function (f) { return '<details><summary>' + esc(f[0]) + '</summary><p>' + esc(f[1]) + '</p></details>'; }).join('') + '</section>';
     h += '<div class="wrap"><div class="band"><div><h2>' + esc(t().ctaT) + '</h2><p>' + esc(t().ctaP) + '</p></div><a class="btn cu" href="' + waLink(t().waMsg0) + '"' + waExt() + '>' + esc(t().wa) + '</a></div></div>';
+    h += vidsHtml();
     return h;
+  }
+  function ytId(u) {
+    var m = String(u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+  function vidsHtml() {
+    var a = []; try { a = JSON.parse(D.set.videos || '[]'); } catch (e) { a = []; }
+    a = (Array.isArray(a) ? a : []).filter(function (x) { return x && x.on !== false && (ytId(x.yt) || x.file); });
+    if (!a.length) return '';
+    return '<section class="wrap sec"><h2>' + (lang === 'en' ? 'Loading and delivery' : 'Chargements et livraisons') + '</h2><div class="vids">' + a.map(function (x) {
+      var ti = lang === 'en' ? (x.t_en || x.t_fr || '') : (x.t_fr || x.t_en || ''), id = ytId(x.yt);
+      return '<figure class="vd">' + (id ? '<div class="vf"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '" title="' + esc(ti) + '" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>'
+        : '<video src="' + esc(x.file) + '#t=0.1" controls preload="metadata" playsinline></video>') + (ti ? '<figcaption>' + esc(ti) + '</figcaption>' : '') + '</figure>';
+    }).join('') + '</div></section>';
   }
   function temHtml() {
     var n = D.tem.length; if (!n) return '';

@@ -25,7 +25,7 @@
       if (r[0].error) throw r[0].error; if (r[1].error) throw r[1].error;
       st.cats = r[0].data || []; st.prods = r[1].data || [];
       st.set = {}; (r[2].data || []).forEach(function (x) { st.set[x.key] = x.value; });
-      st.settingsErr = r[2].error ? r[2].error.message : null;
+      st.settingsErr = r[2].error ? r[2].error.message : null; st.vlist = null;
     });
   }
   function boot() {
@@ -44,7 +44,7 @@
   }
   function head() {
     return '<div class="ad"><div class="bar"><h1 style="margin:0">Administration</h1><div style="display:flex;gap:8px"><a class="btn gh sm" href="index.html" target="_blank">Voir le site</a><button class="btn gh sm" data-a="logout">Déconnexion</button></div></div>' +
-      '<div class="tabs">' + [['prod', 'Produits'], ['cat', 'Catégories'], ['tem', 'Témoignages'], ['set', 'Contact']].map(function (t) { return '<button class="chip' + (st.tab === t[0] ? ' on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' + msgHtml();
+      '<div class="tabs">' + [['prod', 'Produits'], ['cat', 'Catégories'], ['tem', 'Témoignages'], ['vid', 'Vidéos'], ['set', 'Contact']].map(function (t) { return '<button class="chip' + (st.tab === t[0] ? ' on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' + msgHtml();
   }
   function catName(slug) { var c = st.cats.find(function (x) { return x.slug === slug; }); return c ? c.name_fr : slug; }
   function prodList() {
@@ -95,6 +95,34 @@
           '<input type="file" class="tfile" accept="image/*" style="display:none"><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button class="btn cu sm" data-a="tsave" data-v="' + esc(x.id) + '">Enregistrer</button><button class="btn gh sm" data-a="tphoto" data-v="' + esc(x.id) + '">' + (x.photo ? 'Changer la photo' : 'Ajouter une photo') + '</button><button class="btn dn sm" data-a="tdel" data-v="' + esc(x.id) + '">Supprimer</button></div></div>';
       }).join('') + '</div>';
   }
+  function vids() { try { var a = JSON.parse(st.set.videos || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function vidView() {
+    var a = st.vlist || (st.vlist = vids());
+    return head() + '<div class="hint" style="margin-bottom:12px">Ces vidéos s’affichent tout en bas de la page d’accueil, dans la section « Chargements et livraisons ». Pour chaque vidéo : collez un lien YouTube (recommandé) OU envoyez un fichier vidéo (50 Mo maximum).</div>' +
+      '<div class="bar"><b>' + a.length + ' vidéo(s)</b><button class="btn cu sm" data-a="vnew">+ Ajouter une vidéo</button></div>' +
+      a.map(function (x, i) {
+        return '<div class="card2" data-vid="' + i + '">' +
+          '<label style="margin-top:0">Titre (français)</label><input type="text" class="vf" value="' + esc(x.t_fr || '') + '">' +
+          '<label>Titre (anglais) – facultatif</label><input type="text" class="ve" value="' + esc(x.t_en || '') + '">' +
+          '<label>Lien YouTube</label><input type="text" class="vy" placeholder="https://youtu.be/..." value="' + esc(x.yt || '') + '">' +
+          (x.file ? '<video src="' + esc(x.file) + '#t=0.1" controls preload="metadata" playsinline style="width:100%;max-height:240px;margin-top:10px;border-radius:10px;background:#000"></video>' : '') +
+          '<div class="chk"><input type="checkbox" class="vp"' + (x.on !== false ? ' checked' : '') + '><span>Visible</span></div>' +
+          '<input type="file" class="vfile" accept="video/*" style="display:none"><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button class="btn cu sm" data-a="vsave">Enregistrer</button><button class="btn gh sm" data-a="vfile" data-v="' + i + '">' + (x.file ? 'Changer le fichier vidéo' : 'Envoyer un fichier vidéo') + '</button><button class="btn gh sm" data-a="vup" data-v="' + i + '">↑ Monter</button><button class="btn dn sm" data-a="vdel" data-v="' + i + '">Supprimer</button></div></div>';
+      }).join('') + '</div>';
+  }
+  function vcollect() {
+    var a = st.vlist || vids();
+    document.querySelectorAll('[data-vid]').forEach(function (c) {
+      var i = Number(c.getAttribute('data-vid')); if (!a[i]) return;
+      a[i].t_fr = c.querySelector('.vf').value.trim(); a[i].t_en = c.querySelector('.ve').value.trim();
+      a[i].yt = c.querySelector('.vy').value.trim(); a[i].on = c.querySelector('.vp').checked;
+    });
+    st.vlist = a; return a;
+  }
+  function vpersist(msg) {
+    var a = st.vlist || [];
+    return sb.from('settings').upsert({ key: 'videos', value: JSON.stringify(a) }).then(function (r) { if (r.error) throw r.error; st.set.videos = JSON.stringify(a); flash(msg); }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); });
+  }
   function setView() {
     return head() + '<div class="card2">' + (st.settingsErr ? '<div class="msg er">La table « settings » est introuvable. Exécutez le fichier settings.sql dans Supabase (SQL Editor).</div>' : '') +
       inp('s_wa', 'Numéro WhatsApp (avec indicatif, ex. +33612345678)', st.set.whatsapp) + inp('s_ph', 'Téléphone affiché', st.set.phone) + inp('s_em', 'E-mail professionnel', st.set.email, 'email') +
@@ -107,7 +135,7 @@
   }
   function render() {
     if (!st.user) { root.innerHTML = login(); return; }
-    root.innerHTML = st.edit ? form() : st.tab === 'cat' ? catView() : st.tab === 'tem' ? temView() : st.tab === 'set' ? setView() : prodList();
+    root.innerHTML = st.edit ? form() : st.tab === 'cat' ? catView() : st.tab === 'tem' ? temView() : st.tab === 'vid' ? vidView() : st.tab === 'set' ? setView() : prodList();
   }
 
   /* ---------- images ---------- */
@@ -211,6 +239,23 @@
     }
     else if (a === 'hdel') {
       sb.from('settings').upsert({ key: 'hero_image', value: '' }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Photo d’accueil retirée.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); });
+    }
+    else if (a === 'vnew') { vcollect().push({ t_fr: '', t_en: '', yt: '', file: '', on: true }); render(); }
+    else if (a === 'vsave') { vcollect(); vpersist('Vidéos enregistrées.'); }
+    else if (a === 'vdel') { if (!confirm('Supprimer cette vidéo ?')) return; vcollect().splice(Number(v), 1); vpersist('Vidéo supprimée.'); }
+    else if (a === 'vup') { var ar = vcollect(), k = Number(v); if (k > 0) { var tmp = ar[k - 1]; ar[k - 1] = ar[k]; ar[k] = tmp; } vpersist('Ordre modifié.'); }
+    else if (a === 'vfile') {
+      var vc = document.querySelector('[data-vid="' + v + '"]'), vf = vc.querySelector('.vfile'), vi = Number(v);
+      vf.onchange = function () {
+        var f = vf.files[0]; if (!f) return; vcollect();
+        if (f.size > 50 * 1024 * 1024) return flash('Vidéo trop lourde (' + Math.round(f.size / 1048576) + ' Mo). Maximum 50 Mo : utilisez plutôt YouTube.', false);
+        var ext = (f.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4', path = 'v/' + rid() + '.' + ext;
+        flash('Envoi de la vidéo en cours, patientez…');
+        sb.storage.from(C.bucket).upload(path, f, { contentType: f.type || 'video/mp4', cacheControl: '31536000' }).then(function (r) {
+          if (r.error) throw r.error; st.vlist[vi].file = sb.storage.from(C.bucket).getPublicUrl(path).data.publicUrl; return vpersist('Vidéo envoyée et enregistrée.');
+        }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); });
+      };
+      vf.click();
     }
     else if (a === 'tnew') { sb.from('testimonials').insert({ name: 'Nouveau client', text_fr: '', sort_order: st.tem.length + 1 }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Témoignage ajouté : complétez-le puis enregistrez.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); }); }
     else if (a === 'tsave') {
