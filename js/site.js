@@ -177,7 +177,7 @@
     var hero = (feat.find(function (p) { return cover(p); }) || {});
     var sr = surfRange();
     var h = '<section class="hero"><div class="wrap"><div class="t"><div class="k">' + t().kicker + '</div><h1>' + esc(t().heroT) + '</h1><p>' + esc(t().heroP) + '</p><div class="cta"><a class="btn cu" href="#/all">' + esc(t().seeAll) + '</a><a class="btn line" href="' + waLink(t().waMsg0) + '"' + waExt() + '>' + esc(t().wa) + '</a></div></div>' +
-      (cover(hero) ? '<div class="im"><img src="' + esc(photos(hero)[0].full) + '" alt=""></div>' : '') + '</div></section>';
+      '<div class="im"><img' + (D.set.hero_image ? ' class="hp"' : '') + ' src="' + (D.set.hero_image ? esc(D.set.hero_image) : 'photos/hero.jpg') + '" alt="Maison mobile livrée par grue"' + (cover(hero) ? ' onerror="this.onerror=null;this.src=\'' + esc(photos(hero)[0].full) + '\'"' : '') + '></div>' + '</div></section>';
     h += '<section class="wrap sec"><h2>' + esc(t().cats) + '</h2><div class="tiles">' + D.cats.map(function (c) {
       var p = D.prods.find(function (x) { return x.category === c.slug && cover(x); });
       return '<a class="tile" href="#/c/' + esc(c.slug) + '">' + (p ? '<img loading="lazy" src="' + esc(cover(p)) + '" alt="">' : '') + '<span>' + esc(lang === 'en' && c.name_en ? c.name_en : c.name_fr) + '</span></a>';

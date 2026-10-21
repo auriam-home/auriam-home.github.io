@@ -98,7 +98,12 @@
   function setView() {
     return head() + '<div class="card2">' + (st.settingsErr ? '<div class="msg er">La table « settings » est introuvable. Exécutez le fichier settings.sql dans Supabase (SQL Editor).</div>' : '') +
       inp('s_wa', 'Numéro WhatsApp (avec indicatif, ex. +33612345678)', st.set.whatsapp) + inp('s_ph', 'Téléphone affiché', st.set.phone) + inp('s_em', 'E-mail professionnel', st.set.email, 'email') +
-      '<div style="height:16px"></div><button class="btn cu" data-a="ssave">Enregistrer</button></div></div>';
+      '<div style="height:16px"></div><button class="btn cu" data-a="ssave">Enregistrer</button></div>' +
+      '<div class="card2"><label style="margin-top:0">Grande photo de la page d’accueil</label>' +
+      '<div class="hint" style="margin:0 0 10px">Si aucune photo n’est choisie ici, le site utilise la première photo du premier produit « à la une ».</div>' +
+      (st.set.hero_image ? '<img src="' + esc(st.set.hero_image) + '" alt="" style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-bottom:10px">' : '') +
+      '<input type="file" id="herofile" accept="image/*" style="display:none"><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn cu sm" data-a="hphoto">' + (st.set.hero_image ? 'Changer la photo d’accueil' : 'Choisir la photo d’accueil') + '</button>' +
+      (st.set.hero_image ? '<button class="btn gh sm" data-a="hdel">Retirer</button>' : '') + '</div></div></div>';
   }
   function render() {
     if (!st.user) { root.innerHTML = login(); return; }
@@ -194,6 +199,18 @@
     else if (a === 'ssave') {
       var rows = [['whatsapp', val('s_wa').trim()], ['phone', val('s_ph').trim()], ['email', val('s_em').trim()]].map(function (x) { return { key: x[0], value: x[1] }; });
       sb.from('settings').upsert(rows).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Coordonnées enregistrées.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); });
+    }
+    else if (a === 'hphoto') {
+      var hf = document.getElementById('herofile');
+      hf.onchange = function () {
+        if (!hf.files.length) return; var id = rid();
+        flash('Envoi de la photo…');
+        resize(hf.files[0], 1600, 0.82).then(function (b) { return up(b, 'h/' + id + '.jpg'); }).then(function (u) { return sb.from('settings').upsert({ key: 'hero_image', value: u }); }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Photo d’accueil enregistrée.'); }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); });
+      };
+      hf.click();
+    }
+    else if (a === 'hdel') {
+      sb.from('settings').upsert({ key: 'hero_image', value: '' }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Photo d’accueil retirée.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); });
     }
     else if (a === 'tnew') { sb.from('testimonials').insert({ name: 'Nouveau client', text_fr: '', sort_order: st.tem.length + 1 }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Témoignage ajouté : complétez-le puis enregistrez.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); }); }
     else if (a === 'tsave') {
