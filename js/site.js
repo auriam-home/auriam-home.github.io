@@ -198,7 +198,7 @@
     var a = []; try { a = JSON.parse(D.set.videos || '[]'); } catch (e) { a = []; }
     a = (Array.isArray(a) ? a : []).filter(function (x) { return x && x.on !== false && (ytId(x.yt) || x.file); });
     if (!a.length) return '';
-    return '<section class="wrap sec"><h2>' + (lang === 'en' ? 'Loading and delivery' : 'Chargements et livraisons') + '</h2><div class="vids">' + a.map(function (x) {
+    return '<section class="wrap sec"><h2>' + esc(lang === 'en' ? (D.set.vid_title_en || D.set.vid_title_fr || 'Loading before delivery') : (D.set.vid_title_fr || D.set.vid_title_en || 'Chargement avant livraison')) + '</h2><div class="vids">' + a.map(function (x) {
       var ti = lang === 'en' ? (x.t_en || x.t_fr || '') : (x.t_fr || x.t_en || ''), id = ytId(x.yt);
       return '<figure class="vd">' + (id ? '<div class="vf"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '" title="' + esc(ti) + '" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>'
         : '<video src="' + esc(x.file) + '#t=0.1" controls preload="metadata" playsinline></video>') + (ti ? '<figcaption>' + esc(ti) + '</figcaption>' : '') + '</figure>';

@@ -98,7 +98,10 @@
   function vids() { try { var a = JSON.parse(st.set.videos || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function vidView() {
     var a = st.vlist || (st.vlist = vids());
-    return head() + '<div class="hint" style="margin-bottom:12px">Ces vidéos s’affichent tout en bas de la page d’accueil, dans la section « Chargements et livraisons ». Pour chaque vidéo : collez un lien YouTube (recommandé) OU envoyez un fichier vidéo (50 Mo maximum).</div>' +
+    return head() + '<div class="card2"><label style="margin-top:0">Titre de la section sur la page d’accueil (français)</label><input type="text" id="vt_fr" value="' + esc(st.set.vid_title_fr || '') + '" placeholder="Chargement avant livraison">' +
+      '<label>Titre de la section (anglais) – facultatif</label><input type="text" id="vt_en" value="' + esc(st.set.vid_title_en || '') + '" placeholder="Loading before delivery">' +
+      '<div style="height:12px"></div><button class="btn cu sm" data-a="vtsave">Enregistrer le titre</button></div>' +
+      '<div class="hint" style="margin-bottom:12px">Ces vidéos s’affichent tout en bas de la page d’accueil, dans la section « Chargements et livraisons ». Pour chaque vidéo : collez un lien YouTube (recommandé) OU envoyez un fichier vidéo (50 Mo maximum).</div>' +
       '<div class="bar"><b>' + a.length + ' vidéo(s)</b><button class="btn cu sm" data-a="vnew">+ Ajouter une vidéo</button></div>' +
       a.map(function (x, i) {
         return '<div class="card2" data-vid="' + i + '">' +
@@ -239,6 +242,9 @@
     }
     else if (a === 'hdel') {
       sb.from('settings').upsert({ key: 'hero_image', value: '' }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Photo d’accueil retirée.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); });
+    }
+    else if (a === 'vtsave') {
+      sb.from('settings').upsert([{ key: 'vid_title_fr', value: val('vt_fr').trim() }, { key: 'vid_title_en', value: val('vt_en').trim() }]).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Titre de la section enregistré.'); }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); });
     }
     else if (a === 'vnew') { vcollect().push({ t_fr: '', t_en: '', yt: '', file: '', on: true }); render(); }
     else if (a === 'vsave') { vcollect(); vpersist('Vidéos enregistrées.'); }
