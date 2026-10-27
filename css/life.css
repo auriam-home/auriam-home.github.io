@@ -59,6 +59,10 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .top .wrap{transition:padding .3s ease}
 .lf-scrolled .top{box-shadow:0 6px 20px rgba(20,38,63,.1)}
 
+/* galerie : fondu entre les photos */
+.pd .main{animation:lf-fade .45s ease}
+.box img{animation:lf-fade .3s ease}
+
 /* témoignage qui se fond */
 .tem{animation:lf-fade .8s ease}
 
@@ -95,3 +99,5 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
  .hero .im:after{background:linear-gradient(180deg,rgba(20,38,63,.8) 0%,rgba(20,38,63,.86) 100%)}
  .hero .wrap{padding-top:48px;padding-bottom:52px;min-height:0}
 }
+
+.pd .main,.box img{touch-action:pan-y}
