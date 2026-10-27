@@ -83,3 +83,15 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 
 /* marges latérales des sections sur téléphone (le texte ne touche plus le bord) */
 .wrap.sec{padding-left:16px;padding-right:16px}
+
+/* image d'accueil en arrière-plan du texte */
+.hero{position:relative;overflow:hidden}
+.hero .im{position:absolute;inset:0;z-index:0;flex:none;border-radius:0}
+.hero .im img{width:100%;height:100%;border-radius:0}
+.hero .im:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,38,63,.93) 0%,rgba(20,38,63,.76) 52%,rgba(20,38,63,.38) 100%)}
+.hero .wrap{position:static;padding-top:76px;padding-bottom:84px;min-height:440px}
+.hero .t{flex:1 1 100%;max-width:640px;position:relative;z-index:2}
+@media(max-width:700px){
+ .hero .im:after{background:linear-gradient(180deg,rgba(20,38,63,.8) 0%,rgba(20,38,63,.86) 100%)}
+ .hero .wrap{padding-top:48px;padding-bottom:52px;min-height:0}
+}
