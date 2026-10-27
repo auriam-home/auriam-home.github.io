@@ -1,0 +1,85 @@
+/* AURIAM HOME : mouvement et vie. Fichier ajouté, le reste du site ne change pas. */
+@media (prefers-reduced-motion:no-preference){
+
+/* entrée du haut de page */
+@keyframes lf-up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes lf-fade{from{opacity:0}to{opacity:1}}
+@keyframes lf-kb{from{transform:scale(1) translate3d(0,0,0)}to{transform:scale(1.09) translate3d(-1.5%,-1%,0)}}
+@keyframes lf-pulse{0%{box-shadow:0 6px 18px rgba(0,0,0,.25),0 0 0 0 rgba(31,157,85,.5)}70%,100%{box-shadow:0 6px 18px rgba(0,0,0,.25),0 0 0 20px rgba(31,157,85,0)}}
+@keyframes lf-shine{0%,70%{transform:translateX(-130%) skewX(-20deg)}100%{transform:translateX(330%) skewX(-20deg)}}
+@keyframes lf-run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes lf-bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.hero .t>*{opacity:0;animation:lf-up .8s cubic-bezier(.2,.7,.2,1) forwards}
+.hero .t>.k{animation-delay:.05s}.hero .t>h1{animation-delay:.18s}.hero .t>p{animation-delay:.32s}.hero .t>.cta{animation-delay:.46s}
+.hero .im{overflow:hidden;border-radius:var(--r);opacity:0;animation:lf-fade 1.1s .15s ease forwards}
+.hero .im img{transform-origin:60% 50%;animation:lf-kb 26s ease-in-out infinite alternate;will-change:transform}
+
+/* changement de page */
+main.lf-pg{animation:lf-up .5s cubic-bezier(.2,.7,.2,1)}
+
+/* apparition au défilement */
+.lf-pre{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.lf-in{opacity:1;transform:none}
+
+/* cartes, tuiles, boutons */
+.card{transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease}
+.card .ph{overflow:hidden}
+.card .ph img,.tile img{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.tile{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.tile span{transition:transform .35s ease}
+.btn{transition:transform .2s ease,filter .2s ease,box-shadow .2s ease}
+.btn:active{transform:scale(.97)}
+.logo svg{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.chip{transition:background .2s ease,color .2s ease,transform .2s ease}
+.th button{transition:border-color .2s ease,transform .2s ease}
+details{transition:box-shadow .25s ease}
+details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
+
+@media (hover:hover){
+ .card:hover{transform:translateY(-6px);box-shadow:0 16px 34px rgba(20,38,63,.14)}
+ .card:hover .ph img{transform:scale(1.07)}
+ .tile:hover{transform:translateY(-4px)}
+ .tile:hover img{transform:scale(1.08)}
+ .btn.cu:hover{filter:brightness(1.06);transform:translateY(-2px);box-shadow:0 8px 18px rgba(201,138,61,.35)}
+ .btn.wa:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,157,85,.35)}
+ .logo:hover svg{transform:rotate(-6deg) scale(1.06)}
+ .th button:hover{transform:translateY(-2px)}
+}
+
+/* bouton principal qui brille de temps en temps */
+.hero .btn.cu{position:relative;overflow:hidden}
+.hero .btn.cu:after{content:"";position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:lf-shine 5.5s ease-in-out 2s infinite;pointer-events:none}
+
+/* WhatsApp flottant qui respire */
+.wab{animation:lf-pulse 3.2s ease-out 1.5s infinite}
+
+/* en-tête qui s'allège au défilement */
+.top{transition:box-shadow .3s ease}
+.top .wrap{transition:padding .3s ease}
+.lf-scrolled .top{box-shadow:0 6px 20px rgba(20,38,63,.1)}
+
+/* témoignage qui se fond */
+.tem{animation:lf-fade .8s ease}
+
+/* bandeau défilant */
+.lf-strip{background:var(--navy2);color:#EFE7D8;overflow:hidden;border-top:1px solid rgba(255,255,255,.08)}
+.lf-track{display:flex;width:max-content;animation:lf-run 38s linear infinite}
+.lf-strip:hover .lf-track{animation-play-state:paused}
+.lf-track span{display:inline-flex;align-items:center;gap:14px;padding:13px 0 13px 14px;font-size:13px;font-weight:500;letter-spacing:.4px;white-space:nowrap}
+.lf-track span:after{content:"";width:6px;height:6px;border-radius:50%;background:var(--cu);margin-left:14px}
+
+/* filet cuivre sous les titres de section */
+.sec>h2{position:relative;padding-bottom:12px}
+.sec>h2:after{content:"";position:absolute;left:0;bottom:0;width:54px;height:3px;border-radius:2px;background:var(--cu);transform-origin:left;transform:scaleX(0)}
+.sec>h2.lf-in:after{animation:lf-bar .7s .25s cubic-bezier(.2,.7,.2,1) forwards}
+}
+
+/* sans animation : le bandeau reste fixe et lisible */
+@media (prefers-reduced-motion:reduce){
+ .lf-strip{overflow-x:auto}.lf-track{width:auto;flex-wrap:wrap;justify-content:center}.lf-track span:nth-child(n+5){display:none}
+ .sec>h2{padding-bottom:12px;border-bottom:3px solid var(--cu);display:inline-block}
+}
+
+/* marges latérales des sections sur téléphone (le texte ne touche plus le bord) */
+.wrap.sec{padding-left:16px;padding-right:16px}
