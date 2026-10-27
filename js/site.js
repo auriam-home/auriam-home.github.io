@@ -204,12 +204,19 @@
         : '<video src="' + esc(x.file) + '#t=0.1" controls preload="metadata" playsinline></video>') + (ti ? '<figcaption>' + esc(ti) + '</figcaption>' : '') + '</figure>';
     }).join('') + '</div></section>';
   }
+  function stars(r) {
+    r = Math.round(Number(r)); if (!(r >= 1 && r <= 5)) return '';
+    var on = '', off = '', i;
+    for (i = 0; i < r; i++) on += '★';
+    for (i = r; i < 5; i++) off += '★';
+    return '<div class="stars" role="img" aria-label="' + (lang === 'en' ? 'Rating: ' + r + ' out of 5' : 'Note : ' + r + ' sur 5') + '">' + on + (off ? '<span>' + off + '</span>' : '') + '</div>';
+  }
   function temHtml() {
     var n = D.tem.length; if (!n) return '';
     if (tIdx >= n) tIdx = 0;
     var x = D.tem[tIdx], txt = L(x, 'text');
     var img = x.photo ? '<img src="' + esc(x.photo) + '" alt="' + esc(x.name) + '" loading="lazy">' : '<span class="av">' + esc((x.name || '?').charAt(0).toUpperCase()) + '</span>';
-    return '<div class="tem">' + img + '<blockquote>“' + nl(txt) + '”</blockquote><div class="who">' + esc(x.name) + (x.place ? ' · ' + esc(x.place) : '') + '</div></div>' +
+    return '<div class="tem">' + img + '<blockquote>“' + nl(txt) + '”</blockquote><div class="who">' + esc(x.name) + (x.place ? ' · ' + esc(x.place) : '') + '</div>' + stars(x.rating) + '</div>' +
       (n > 1 ? '<div class="tnav"><button data-act="tprev" aria-label="←">‹</button><span>' + (tIdx + 1) + ' / ' + n + '</span><button data-act="tnext" aria-label="→">›</button></div>' : '');
   }
   function sel(id, opts, val) {
