@@ -49,7 +49,7 @@
       var w = Math.round(im.naturalWidth * sc), h = Math.round(im.naturalHeight * sc);
       var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
       var cx = cv.getContext('2d'); cx.drawImage(im, 0, 0, w, h);
-      var id = cx.getImageData(0, 0, w, h), d = id.data;
+      var d = cx.getImageData(0, 0, w, h).data;
       var c = [d[0], d[1], d[2]], tr = d[3] < 20, x, y, i;
       var x0 = w, y0 = h, x1 = -1, y1 = -1;
       for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
@@ -58,17 +58,29 @@
         if (solid) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
       }
       if (x1 < 0) return null;
-      var bg = tr ? null : 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
-      if (key && !tr) {
-        for (i = 0; i < d.length; i += 4) {
-          var k = dist(d, i, c);
-          if (k <= 40) d[i + 3] = 0; else if (k < 110) d[i + 3] = Math.round((k - 40) / 70 * 255);
+      var ow = x1 - x0 + 1, oh = y1 - y0 + 1;
+      function variant(keyBg, light) {
+        var cp = new Uint8ClampedArray(d), j;
+        for (j = 0; j < cp.length; j += 4) {
+          if (keyBg && !tr) {
+            var k = dist(cp, j, c);
+            cp[j + 3] = k <= 40 ? 0 : k < 110 ? Math.round((k - 40) / 70 * 255) : 255;
+          }
+          if (light && cp[j + 3] > 0) {
+            var r = cp[j], g = cp[j + 1], bl = cp[j + 2];
+            if (!(r > 130 && r - bl > 35)) {
+              var lum = 0.3 * r + 0.59 * g + 0.11 * bl;
+              if (lum < 100) { cp[j] = 255; cp[j + 1] = 255; cp[j + 2] = 255; } else { cp[j] = 205; cp[j + 1] = 214; cp[j + 2] = 228; }
+            }
+          }
         }
-        cx.putImageData(id, 0, 0);
+        var t = document.createElement('canvas'); t.width = w; t.height = h;
+        t.getContext('2d').putImageData(new ImageData(cp, w, h), 0, 0);
+        var o = document.createElement('canvas'); o.width = ow; o.height = oh;
+        o.getContext('2d').drawImage(t, x0, y0, ow, oh, 0, 0, ow, oh);
+        return o.toDataURL('image/png');
       }
-      var ow = x1 - x0 + 1, oh = y1 - y0 + 1, o = document.createElement('canvas'); o.width = ow; o.height = oh;
-      o.getContext('2d').drawImage(cv, x0, y0, ow, oh, 0, 0, ow, oh);
-      return { url: o.toDataURL('image/png'), transparent: tr || !!key, bg: bg };
+      return { url: variant(!!key, false), light: variant(true, true), transparent: tr || !!key, bg: tr ? null : 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')' };
     } catch (e) { return null; }
   }
   function probe(base, k) {
@@ -93,13 +105,16 @@
         }
       }
     }
-    var dark = LG.c && LG.c.transparent, pick = dark ? LG.c : (LG.f || LG.c);
-    if (pick) {
+    var src = null, dark = false, bg = null;
+    if (LG.c && LG.c.transparent && LG.c.bg === null) { src = LG.c.url; dark = true; }
+    else if (LG.f && LG.f.light) { src = LG.f.light; dark = true; }
+    else if (LG.f || LG.c) { var q = LG.f || LG.c; src = q.url; bg = q.bg; }
+    if (src) {
       var f = app.querySelector('.foot .wrap>div:first-child');
       if (f && !f.querySelector('.lf-flogo')) {
         var d = document.createElement('div'); d.className = 'lf-flogo' + (dark ? ' lf-dark' : '');
-        if (!dark && pick.bg) d.style.background = pick.bg;
-        d.innerHTML = '<img src="' + pick.url + '" alt="AURIAM HOME">';
+        if (bg) d.style.background = bg;
+        d.innerHTML = '<img src="' + src + '" alt="AURIAM HOME">';
         f.insertBefore(d, f.firstChild);
       }
     }
