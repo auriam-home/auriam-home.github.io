@@ -26,7 +26,7 @@
       aboutP: 'Chez AURIAM HOME, nous vous proposons plusieurs gammes de maisons mobiles, de maisons conteneurs et de conteneurs maritimes, de [MIN] m² à [MAX] m², neufs ou d’occasion, pour choisir la superficie qui correspond à votre projet, avec un espace de vie très confortable. Nous vous accompagnons de l’achat jusqu’à la livraison et à l’installation, et nous cherchons avec vous la solution adaptée à votre budget et à votre terrain. Nous proposons aussi des solutions de financement pour payer de façon échelonnée, sans stress.',
       why: [['Livraison et installation', 'Nous livrons et nous assurons le déchargement et l’installation.'], ['Financement échelonné', 'Payez de façon échelonnée, selon un contrat avec AURIAM HOME.'], ['Visites et devis', 'Visites bienvenues à Périgueux, devis valable 30 jours sur WhatsApp.']],
       faqT: 'Questions fréquentes', temT: 'Témoignages de nos clients',
-      faq: [['Livrez-vous ?', 'Oui, la livraison est possible dans toute l’Europe, et hors Union européenne sur devis. Le délai est de 7 à 10 jours en livraison dédiée, ou de 2 à 3 semaines en livraison groupée (moins chère), à partir de la réception de l’acompte.'],
+      faq: [['Livrez-vous ?', 'Oui, la livraison est possible dans toute l’Europe, et hors Union européenne sur devis. Le délai est de 7 à 10 jours en livraison dédiée, ou de 2 à 3 semaines en livraison groupée (tarif avantageux), à partir de la réception de l’acompte.'],
         ['Comment payer ?', 'Par virement bancaire, au comptant ou de façon échelonnée. Le détail est sur la page « Financement et paiement » et dans nos conditions générales de vente.'],
         ['L’installation est-elle comprise ?', 'AURIAM HOME assure le déchargement et l’installation, gratuitement. La préparation du terrain reste à votre charge et nous vous envoyons un plan avant la livraison.'],
         ['Puis-je visiter avant d’acheter ?', 'Oui, les visites sont bienvenues au parc d’exposition de Périgueux. Contactez-nous pour convenir d’un moment.']],
@@ -63,7 +63,7 @@
       aboutP: 'At AURIAM HOME, we offer several ranges of mobile homes, container homes and shipping containers, from [MIN] m² to [MAX] m², new or used, so you can choose the size that fits your project, with a very comfortable living space. We support you from purchase through to delivery and installation, and we look with you for the solution that fits your budget and your land. We also offer financing solutions so you can pay in instalments, without stress.',
       why: [['Delivery and installation', 'We deliver and handle unloading and installation.'], ['Instalment financing', 'Pay in instalments, under a contract with AURIAM HOME.'], ['Visits and quotes', 'Visits welcome in Périgueux, quote valid for 30 days on WhatsApp.']],
       faqT: 'Frequently asked questions', temT: 'What our customers say',
-      faq: [['Do you deliver?', 'Yes, delivery is available across Europe, and outside the European Union on quote. Lead time is 7 to 10 days for dedicated delivery, or 2 to 3 weeks for grouped delivery (cheaper), counted from receipt of the deposit.'],
+      faq: [['Do you deliver?', 'Yes, delivery is available across Europe, and outside the European Union on quote. Lead time is 7 to 10 days for dedicated delivery, or 2 to 3 weeks for grouped delivery (competitive rate), counted from receipt of the deposit.'],
         ['How do I pay?', 'By bank transfer, in cash terms or in instalments. Details are on the “Financing and payment” page and in our terms and conditions of sale.'],
         ['Is installation included?', 'AURIAM HOME carries out the unloading and installation free of charge. Preparing the site is at your expense and we send you a plan before delivery.'],
         ['Can I visit before buying?', 'Yes, visits are welcome at our showroom in Périgueux. Contact us to agree on a time.']],
@@ -279,7 +279,7 @@
     fr: {
       livraison: function () { return '<h1>Livraison et délais</h1><p>Nous livrons votre maison mobile ou votre conteneur partout en Europe, et hors Union européenne sur devis.</p>' +
         '<h2>Transport</h2><p>Le transport se fait par convoi exceptionnel. Son coût, calculé selon la destination, figure dans votre devis.</p>' +
-        '<h2>Délais</h2>' + steps(['<strong>7 à 10 jours</strong> en livraison dédiée.', '<strong>2 à 3 semaines</strong> en livraison groupée, moins chère.', 'Le délai court à partir de la <strong>réception de l’acompte</strong>.']) +
+        '<h2>Délais</h2>' + steps(['<strong>7 à 10 jours</strong> en livraison dédiée.', '<strong>2 à 3 semaines</strong> en livraison groupée, tarif avantageux.', 'Le délai court à partir de la <strong>réception de l’acompte</strong>.']) +
         '<h2>Déchargement et installation</h2><p>AURIAM HOME assure le déchargement et l’installation, gratuitement. Un plan de préparation du terrain vous est envoyé avant la livraison ; la préparation du terrain est réalisée à vos frais. Si l’accès est difficile et nécessite une grue, vous louez une grue locale à vos frais.</p>' +
         '<h2>Ce dont nous avons besoin</h2><ul><li>Un accès praticable au terrain.</li><li>Les autorisations nécessaires (urbanisme, raccordements).</li></ul>' +
         '<h2>Hors Union européenne</h2><p>Les droits de douane, la TVA à l’importation et les formalités restent à votre charge, sauf mention contraire dans le devis.</p>' +
@@ -298,7 +298,7 @@
     en: {
       livraison: function () { return '<h1>Delivery and lead times</h1><p>We deliver your mobile home or container across Europe, and outside the European Union on quote.</p>' +
         '<h2>Transport</h2><p>Transport is by abnormal-load convoy. Its cost depends on the destination and is stated in your quote.</p>' +
-        '<h2>Lead times</h2>' + steps(['<strong>7 to 10 days</strong> for dedicated delivery.', '<strong>2 to 3 weeks</strong> for grouped delivery, which is cheaper.', 'The lead time starts when the <strong>deposit is received</strong>.']) +
+        '<h2>Lead times</h2>' + steps(['<strong>7 to 10 days</strong> for dedicated delivery.', '<strong>2 to 3 weeks</strong> for grouped delivery, at a competitive rate.', 'The lead time starts when the <strong>deposit is received</strong>.']) +
         '<h2>Unloading and installation</h2><p>AURIAM HOME carries out the unloading and installation free of charge. A site-preparation plan is sent to you before delivery; preparing the site is done at your expense. If access is difficult and a crane is needed, you hire a local crane at your own expense.</p>' +
         '<h2>What we need</h2><ul><li>Practical access to the site.</li><li>The required permits (planning, utility connections).</li></ul>' +
         '<h2>Outside the European Union</h2><p>Customs duties, import VAT and formalities are your responsibility, unless the quote says otherwise.</p>' +
