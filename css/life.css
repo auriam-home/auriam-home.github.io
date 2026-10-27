@@ -128,3 +128,12 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .hero .cta .btn.line{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.7)}
 .lf-lb{font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#fff;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.28)}
 .lf-nt{font-size:12px;font-style:italic;color:#E6EAF1;text-align:right;line-height:1.4}
+
+.wab{transition:opacity .35s ease,transform .35s ease}
+.lf-hero .wab{opacity:0;transform:scale(.6);pointer-events:none;animation:none}
+
+/* bouton e-mail flottant : marine et cuivre, comme le reste du site */
+.lf-mail{position:fixed;right:16px;bottom:88px;width:58px;height:58px;border-radius:50%;background:var(--navy);color:#fff;border:2px solid var(--cu);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:30;transition:opacity .35s ease,transform .35s ease,background .2s ease}
+.lf-mail svg{color:var(--cu)}
+.lf-mail:hover{background:var(--navy2)}
+.lf-hero .lf-mail{opacity:0;transform:scale(.6);pointer-events:none}
