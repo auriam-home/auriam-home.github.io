@@ -112,7 +112,8 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .logo.lf-st span{display:flex;gap:8px;align-items:baseline;overflow:hidden;max-height:24px;transition:max-height .3s ease,opacity .3s ease}
 .logo.lf-st b{display:inline;font-size:16px;letter-spacing:3px}
 .logo.lf-st i{display:inline;font-size:16px;letter-spacing:3px;margin:0;font-weight:500}
-.lf-scrolled .logo.lf-st span{max-height:0;opacity:0}
+.lf-scrolled .logo.lf-st{gap:0;align-items:flex-start}
+.lf-scrolled .logo.lf-st span{max-height:0;width:0;opacity:0}
 .lf-scrolled .lf-logo{height:38px}
 .lf-flogo{display:table;border-radius:14px;padding:14px 22px;margin-bottom:14px;background:#F8F8F6}
 .lf-flogo img{display:block;height:84px;width:auto}
