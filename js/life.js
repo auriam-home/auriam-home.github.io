@@ -39,14 +39,44 @@
     b.removeAttribute('target'); b.removeAttribute('rel');
   }
 
-  /* logo officiel : utilisé seulement si les fichiers existent, sinon le logo actuel reste */
+  /* logo officiel : utilisé seulement si les fichiers existent, sinon le logo actuel reste.
+     Les marges vides sont rognées et le fond uni est retiré automatiquement. */
   var LG = { s: null, f: null, c: null };
+  function dist(d, i, c) { return Math.abs(d[i] - c[0]) + Math.abs(d[i + 1] - c[1]) + Math.abs(d[i + 2] - c[2]); }
+  function prep(im, key) {
+    try {
+      var sc = Math.min(1, 1400 / Math.max(im.naturalWidth, im.naturalHeight));
+      var w = Math.round(im.naturalWidth * sc), h = Math.round(im.naturalHeight * sc);
+      var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      var cx = cv.getContext('2d'); cx.drawImage(im, 0, 0, w, h);
+      var id = cx.getImageData(0, 0, w, h), d = id.data;
+      var c = [d[0], d[1], d[2]], tr = d[3] < 20, x, y, i;
+      var x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        i = (y * w + x) * 4;
+        var solid = tr ? d[i + 3] > 20 : dist(d, i, c) > 45;
+        if (solid) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      }
+      if (x1 < 0) return null;
+      var bg = tr ? null : 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      if (key && !tr) {
+        for (i = 0; i < d.length; i += 4) {
+          var k = dist(d, i, c);
+          if (k <= 40) d[i + 3] = 0; else if (k < 110) d[i + 3] = Math.round((k - 40) / 70 * 255);
+        }
+        cx.putImageData(id, 0, 0);
+      }
+      var ow = x1 - x0 + 1, oh = y1 - y0 + 1, o = document.createElement('canvas'); o.width = ow; o.height = oh;
+      o.getContext('2d').drawImage(cv, x0, y0, ow, oh, 0, 0, ow, oh);
+      return { url: o.toDataURL('image/png'), transparent: tr || !!key, bg: bg };
+    } catch (e) { return null; }
+  }
   function probe(base, k) {
     var ex = ['png', 'jpg', 'jpeg', 'webp'], n = 0;
     (function next() {
       if (n >= ex.length) return;
       var im = new Image(), src = base + '.' + ex[n];
-      im.onload = function () { LG[k] = src; queue(); };
+      im.onload = function () { var r = prep(im, k === 's'); LG[k] = r || { url: src, transparent: false, bg: null }; queue(); };
       im.onerror = function () { n++; next(); };
       im.src = src;
     })();
@@ -54,15 +84,22 @@
   probe('logo-symbole', 's'); probe('logo-complet', 'f'); probe('logo-clair', 'c');
   function logos() {
     if (LG.s) {
-      Array.prototype.forEach.call(app.querySelectorAll('.logo svg'), function (v) {
-        var im = document.createElement('img'); im.src = LG.s; im.alt = ''; im.className = 'lf-logo'; v.parentNode.replaceChild(im, v);
-      });
+      var lg = app.querySelector('.top .logo');
+      if (lg && !lg.classList.contains('lf-st')) {
+        var v = lg.querySelector('svg');
+        if (v) {
+          var im = document.createElement('img'); im.src = LG.s.url; im.alt = ''; im.className = 'lf-logo';
+          lg.replaceChild(im, v); lg.classList.add('lf-st');
+        }
+      }
     }
-    if (LG.f || LG.c) {
+    var dark = LG.c && LG.c.transparent, pick = dark ? LG.c : (LG.f || LG.c);
+    if (pick) {
       var f = app.querySelector('.foot .wrap>div:first-child');
       if (f && !f.querySelector('.lf-flogo')) {
-        var d = document.createElement('div'); d.className = 'lf-flogo' + (LG.c ? ' lf-dark' : '');
-        d.innerHTML = '<img src="' + (LG.c || LG.f) + '" alt="AURIAM HOME">';
+        var d = document.createElement('div'); d.className = 'lf-flogo' + (dark ? ' lf-dark' : '');
+        if (!dark && pick.bg) d.style.background = pick.bg;
+        d.innerHTML = '<img src="' + pick.url + '" alt="AURIAM HOME">';
         f.insertBefore(d, f.firstChild);
       }
     }
