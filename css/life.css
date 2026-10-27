@@ -105,3 +105,11 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 /* étoiles des témoignages */
 .stars{margin-top:10px;color:var(--cu);font-size:26px;letter-spacing:4px;line-height:1}
 .stars span{color:#D8D1C3}
+
+/* logo officiel */
+.lf-logo{display:block;height:50px;width:auto;mix-blend-mode:multiply}
+.lf-flogo{display:table;background:#F8F8F6;border-radius:14px;padding:12px 20px;margin-bottom:14px}
+.lf-flogo img{display:block;height:92px;width:auto;mix-blend-mode:multiply}
+.lf-flogo~b{display:none}
+.lf-flogo.lf-dark{background:none;padding:0;border-radius:0;display:block}
+.lf-flogo.lf-dark img{mix-blend-mode:normal;height:100px}
