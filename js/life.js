@@ -38,6 +38,14 @@
     b.setAttribute('href', '#/contact');
     b.removeAttribute('target'); b.removeAttribute('rel');
   }
+  function panel() {
+    var cta = app.querySelector('.hero .cta');
+    if (!cta || cta.querySelector('.lf-lb')) return;
+    var en = document.documentElement.lang === 'en';
+    var a = document.createElement('div'); a.className = 'lf-lb'; a.textContent = en ? 'New and used' : 'Neufs et d’occasion';
+    var z = document.createElement('div'); z.className = 'lf-nt'; z.textContent = en ? 'Free quote, valid for 30 days' : 'Devis gratuit, valable 30 jours';
+    cta.insertBefore(a, cta.firstChild); cta.appendChild(z);
+  }
 
   /* logo officiel : utilisé seulement si les fichiers existent, sinon le logo actuel reste.
      Les marges vides sont rognées et le fond uni est retiré automatiquement. */
@@ -129,7 +137,7 @@
   }
 
   function scan() {
-    strip(); quoteBtn(); gallery(); logos();
+    strip(); quoteBtn(); panel(); gallery(); logos();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
