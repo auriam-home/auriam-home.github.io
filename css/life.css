@@ -107,9 +107,15 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .stars span{color:#D8D1C3}
 
 /* logo officiel */
-.lf-logo{display:block;height:50px;width:auto;mix-blend-mode:multiply}
-.lf-flogo{display:table;background:#F8F8F6;border-radius:14px;padding:12px 20px;margin-bottom:14px}
-.lf-flogo img{display:block;height:92px;width:auto;mix-blend-mode:multiply}
+.logo.lf-st{flex-direction:column;align-items:center;gap:3px}
+.lf-logo{display:block;height:46px;width:auto;transition:height .3s ease}
+.logo.lf-st span{display:flex;gap:8px;align-items:baseline;overflow:hidden;max-height:24px;transition:max-height .3s ease,opacity .3s ease}
+.logo.lf-st b{display:inline;font-size:16px;letter-spacing:3px}
+.logo.lf-st i{display:inline;font-size:16px;letter-spacing:3px;margin:0;font-weight:500}
+.lf-scrolled .logo.lf-st span{max-height:0;opacity:0}
+.lf-scrolled .lf-logo{height:38px}
+.lf-flogo{display:table;border-radius:14px;padding:14px 22px;margin-bottom:14px;background:#F8F8F6}
+.lf-flogo img{display:block;height:84px;width:auto}
 .lf-flogo~b{display:none}
 .lf-flogo.lf-dark{background:none;padding:0;border-radius:0;display:block}
-.lf-flogo.lf-dark img{mix-blend-mode:normal;height:100px}
+.lf-flogo.lf-dark img{height:100px}
