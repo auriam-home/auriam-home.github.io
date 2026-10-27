@@ -39,6 +39,35 @@
     b.removeAttribute('target'); b.removeAttribute('rel');
   }
 
+  /* logo officiel : utilisé seulement si les fichiers existent, sinon le logo actuel reste */
+  var LG = { s: null, f: null, c: null };
+  function probe(base, k) {
+    var ex = ['png', 'jpg', 'jpeg', 'webp'], n = 0;
+    (function next() {
+      if (n >= ex.length) return;
+      var im = new Image(), src = base + '.' + ex[n];
+      im.onload = function () { LG[k] = src; queue(); };
+      im.onerror = function () { n++; next(); };
+      im.src = src;
+    })();
+  }
+  probe('logo-symbole', 's'); probe('logo-complet', 'f'); probe('logo-clair', 'c');
+  function logos() {
+    if (LG.s) {
+      Array.prototype.forEach.call(app.querySelectorAll('.logo svg'), function (v) {
+        var im = document.createElement('img'); im.src = LG.s; im.alt = ''; im.className = 'lf-logo'; v.parentNode.replaceChild(im, v);
+      });
+    }
+    if (LG.f || LG.c) {
+      var f = app.querySelector('.foot .wrap>div:first-child');
+      if (f && !f.querySelector('.lf-flogo')) {
+        var d = document.createElement('div'); d.className = 'lf-flogo' + (LG.c ? ' lf-dark' : '');
+        d.innerHTML = '<img src="' + (LG.c || LG.f) + '" alt="AURIAM HOME">';
+        f.insertBefore(d, f.firstChild);
+      }
+    }
+  }
+
   function gallery() {
     var on = app.querySelector('.pd .th button.on');
     if (!on || on.__g) return;
@@ -48,7 +77,7 @@
   }
 
   function scan() {
-    strip(); quoteBtn(); gallery();
+    strip(); quoteBtn(); gallery(); logos();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
