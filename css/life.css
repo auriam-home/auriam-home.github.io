@@ -120,3 +120,11 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-flogo~b{display:none}
 .lf-flogo.lf-dark{background:none;padding:0;border-radius:0;display:block}
 .lf-flogo.lf-dark img{height:100px}
+
+/* boutons de l'accueil dans un panneau en verre dépoli */
+.hero .cta{display:flex;flex-direction:column;gap:12px;width:100%;max-width:390px;margin-top:6px;padding:18px 18px 14px;background:rgba(20,38,63,.45);background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.24);border-radius:6px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.hero .cta{background:rgba(20,38,63,.62)}}
+.hero .cta .btn{width:100%;border-radius:4px}
+.hero .cta .btn.line{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.7)}
+.lf-lb{font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#fff;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.28)}
+.lf-nt{font-size:12px;font-style:italic;color:#E6EAF1;text-align:right;line-height:1.4}
