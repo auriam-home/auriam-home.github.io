@@ -30,8 +30,17 @@
     hero.parentNode.insertBefore(d, hero.nextSibling);
   }
 
+  function quoteBtn() {
+    var b = app.querySelector('.hero .cta .btn.line');
+    if (!b || b.__q) return;
+    b.__q = 1;
+    b.textContent = document.documentElement.lang === 'en' ? 'Request a quote' : 'Demander un devis';
+    b.setAttribute('href', '#/contact');
+    b.removeAttribute('target'); b.removeAttribute('rel');
+  }
+
   function scan() {
-    strip();
+    strip(); quoteBtn();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
