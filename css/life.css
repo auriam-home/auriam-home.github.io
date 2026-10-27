@@ -101,3 +101,7 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 }
 
 .pd .main,.box img{touch-action:pan-y}
+
+/* étoiles des témoignages */
+.stars{margin-top:10px;color:var(--cu);font-size:26px;letter-spacing:4px;line-height:1}
+.stars span{color:#D8D1C3}
