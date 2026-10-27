@@ -136,8 +136,38 @@
     c.scrollLeft = on.offsetLeft - (c.clientWidth - on.offsetWidth) / 2;
   }
 
+  /* le bouton WhatsApp flottant se met en retrait tant que l'accueil est à l'écran */
+  var heroEl = null, heroIO = null;
+  function heroWatch() {
+    var h = app.querySelector('.hero');
+    if (h === heroEl) return;
+    heroEl = h;
+    if (heroIO) heroIO.disconnect();
+    if (!h) { document.body.classList.remove('lf-hero'); return; }
+    if (!('IntersectionObserver' in window)) return;
+    heroIO = new IntersectionObserver(function (es) {
+      document.body.classList.toggle('lf-hero', es[0].intersectionRatio > 0.3);
+    }, { threshold: [0, 0.3, 0.6, 1] });
+    heroIO.observe(h);
+  }
+
+  /* bouton e-mail flottant, au-dessus de WhatsApp */
+  function mailBtn() {
+    var en = document.documentElement.lang === 'en';
+    var a = app.querySelector('.lf-mail');
+    if (!a) {
+      a = document.createElement('a'); a.className = 'lf-mail';
+      a.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+      app.appendChild(a);
+    }
+    var m = app.querySelector('.foot a[href^="mailto:"]');
+    a.setAttribute('href', m ? m.getAttribute('href') : '#/contact');
+    a.setAttribute('aria-label', en ? 'Email us' : 'Nous écrire par e-mail');
+    a.setAttribute('title', en ? 'Email us' : 'Nous écrire par e-mail');
+  }
+
   function scan() {
-    strip(); quoteBtn(); panel(); gallery(); logos();
+    strip(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
