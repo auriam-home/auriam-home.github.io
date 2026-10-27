@@ -39,8 +39,16 @@
     b.removeAttribute('target'); b.removeAttribute('rel');
   }
 
+  function gallery() {
+    var on = app.querySelector('.pd .th button.on');
+    if (!on || on.__g) return;
+    on.__g = 1;
+    var c = on.parentNode;
+    c.scrollLeft = on.offsetLeft - (c.clientWidth - on.offsetWidth) / 2;
+  }
+
   function scan() {
-    strip(); quoteBtn();
+    strip(); quoteBtn(); gallery();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
@@ -59,6 +67,26 @@
   function queue() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; scan(); }); }
   new MutationObserver(queue).observe(app, { childList: true, subtree: true });
   queue();
+
+  /* galerie : glisser le doigt pour changer de photo */
+  var sx = null, sy = 0, zoom = false;
+  document.addEventListener('touchstart', function (e) {
+    var t = e.target.closest && e.target.closest('.box img,.pd .main');
+    if (!t || e.touches.length !== 1) { sx = null; return; }
+    zoom = !!t.closest('.box');
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    var dir = dx < 0 ? 1 : -1, b;
+    if (zoom) { b = document.querySelector(dir > 0 ? '.box .n' : '.box .p'); if (b) b.click(); return; }
+    var th = Array.prototype.slice.call(document.querySelectorAll('.pd .th button'));
+    var i = th.indexOf(document.querySelector('.pd .th button.on'));
+    if (th.length > 1 && i > -1) th[(i + dir + th.length) % th.length].click();
+  }, { passive: true });
 
   /* en-tête avec ombre au défilement */
   function sc() { document.body.classList.toggle('lf-scrolled', window.scrollY > 8); }
