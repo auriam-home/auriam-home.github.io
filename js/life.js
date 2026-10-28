@@ -137,7 +137,7 @@
   }
 
   /* le bouton WhatsApp flottant se met en retrait tant que l'accueil est à l'écran */
-  var heroEl = null, heroIO = null;
+  var heroEl = null, heroIO = null, heroVis = false;
   function heroWatch() {
     var h = app.querySelector('.hero');
     if (h === heroEl) return;
@@ -146,6 +146,7 @@
     if (!h) { document.body.classList.remove('lf-hero'); return; }
     if (!('IntersectionObserver' in window)) return;
     heroIO = new IntersectionObserver(function (es) {
+      heroVis = es[0].isIntersecting;
       document.body.classList.toggle('lf-hero', es[0].intersectionRatio > 0.3);
     }, { threshold: [0, 0.3, 0.6, 1] });
     heroIO.observe(h);
@@ -208,6 +209,45 @@
   function queue() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; scan(); }); }
   new MutationObserver(queue).observe(app, { childList: true, subtree: true });
   queue();
+
+  /* profondeur de l'en-tête : 3 plans (photo au fond, texte au milieu, panneau devant) */
+  var tgt = { x: 0, y: 0 }, cur3 = { x: 0, y: 0 }, loop3 = 0;
+  function setPtr(cx, cy) {
+    if (!heroEl) return;
+    var r = heroEl.getBoundingClientRect();
+    tgt.x = Math.max(-1, Math.min(1, (cx - r.left) / r.width * 2 - 1));
+    tgt.y = Math.max(-1, Math.min(1, (cy - r.top) / r.height * 2 - 1));
+  }
+  if (!reduce) {
+    addEventListener('mousemove', function (e) { setPtr(e.clientX, e.clientY); }, { passive: true });
+    addEventListener('touchmove', function (e) { if (heroVis && e.touches[0]) setPtr(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    addEventListener('touchend', function () { tgt.x = 0; tgt.y = 0; }, { passive: true });
+    var asked = false;
+    addEventListener('touchend', function () {
+      if (asked) return; asked = true;
+      try { if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().catch(function () {}); } catch (e) {}
+    }, { passive: true });
+    addEventListener('deviceorientation', function (e) {
+      if (e.gamma == null || !heroVis) return;
+      tgt.x = Math.max(-1, Math.min(1, e.gamma / 22));
+      tgt.y = Math.max(-1, Math.min(1, ((e.beta || 50) - 50) / 22));
+    }, { passive: true });
+    (function frame() {
+      loop3 = requestAnimationFrame(frame);
+      if (!heroEl || !heroVis) return;
+      cur3.x += (tgt.x - cur3.x) * 0.08; cur3.y += (tgt.y - cur3.y) * 0.08;
+      var H = heroEl.offsetHeight, p = Math.max(0, Math.min(H, -heroEl.getBoundingClientRect().top));
+      var back = heroEl.querySelector('.im'), mid = heroEl.querySelector('.t'), front = heroEl.querySelector('.cta');
+      var sy = Math.min(p * 0.12, H * 0.05);
+      if (back) back.style.translate = (-cur3.x * 12).toFixed(2) + 'px ' + (sy - cur3.y * 8).toFixed(2) + 'px';
+      if (mid) mid.style.translate = (cur3.x * 5).toFixed(2) + 'px ' + (cur3.y * 3 - p * 0.03).toFixed(2) + 'px';
+      if (front) {
+        front.style.translate = (cur3.x * 12).toFixed(2) + 'px ' + (cur3.y * 8 - p * 0.05).toFixed(2) + 'px';
+        front.style.setProperty('--gx', ((cur3.x + 1) * 50).toFixed(1) + '%');
+        front.style.setProperty('--gy', ((cur3.y + 1) * 50).toFixed(1) + '%');
+      }
+    })();
+  }
 
   /* galerie : glisser le doigt pour changer de photo */
   var sx = null, sy = 0, zoom = false;
