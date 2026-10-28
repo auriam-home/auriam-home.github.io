@@ -189,8 +189,135 @@
     Array.prototype.forEach.call(dr.querySelectorAll('a.l,.lf-mt'), function (el, i) { el.style.setProperty('--i', i); });
   }
 
+  /* bande 3D : maison mobile, conteneur maritime, conteneur bureau (un tour chacun) */
+  var M3 = {
+    fr: ['Maison mobile', 'Conteneur maritime', 'Conteneur bureau'],
+    en: ['Mobile home', 'Shipping container', 'Office container']
+  };
+  var b3 = { i: 0, t: 0, drag: 0, dragging: false, vis: false, built: -1, last: 0, el: null };
+  function sh(hex, k) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    function c(v) { return Math.max(0, Math.min(255, Math.round(v * k))); }
+    return 'rgb(' + c(r) + ',' + c(g) + ',' + c(b) + ')';
+  }
+  function fc(w, h, tf, css, inner) {
+    return '<div class="f" style="width:' + w + 'px;height:' + h + 'px;margin:' + (-h / 2) + 'px 0 0 ' + (-w / 2) + 'px;transform:' + tf + ';' + (css || '') + '">' + (inner || '') + '</div>';
+  }
+  function box(w, h, d, pos, o) {
+    o = o || {};
+    function g(k) { return o[k] || {}; }
+    function f(k, W, H, tf) { var x = g(k); return fc(W, H, tf, x.css || '', x.inner || ''); }
+    return '<div class="g" style="transform:' + pos + '">' +
+      f('front', w, h, 'translateZ(' + d / 2 + 'px)') + f('back', w, h, 'rotateY(180deg) translateZ(' + d / 2 + 'px)') +
+      f('right', d, h, 'rotateY(90deg) translateZ(' + w / 2 + 'px)') + f('left', d, h, 'rotateY(-90deg) translateZ(' + w / 2 + 'px)') +
+      f('top', w, d, 'rotateX(90deg) translateZ(' + h / 2 + 'px)') + f('bottom', w, d, 'rotateX(-90deg) translateZ(' + h / 2 + 'px)') + '</div>';
+  }
+  function win(x, y, w, h) {
+    return '<i class="lw" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px"></i>';
+  }
+  function mobileHome() {
+    var L = 300, W = 112, H = 98, P = 30, B = '#B98F66', Y = -(8 + H / 2);
+    var cl = function (k) { return 'background:repeating-linear-gradient(180deg,rgba(0,0,0,.16) 0 1.5px,transparent 1.5px 9px),' + sh(B, k) + ';'; };
+    var skirt = '<i style="position:absolute;left:0;right:0;bottom:0;height:9px;background:rgba(40,30,20,.45)"></i>';
+    var door = '<i class="ld" style="left:36px;top:24px;width:34px;height:74px"></i>';
+    var front = { css: cl(1), inner: door + win(100, 22, 54, 46) + win(180, 22, 54, 46) + win(252, 22, 34, 46) + skirt };
+    var back = { css: cl(.9), inner: win(30, 22, 54, 46) + win(122, 22, 54, 46) + win(214, 22, 54, 46) + skirt };
+    var end1 = { css: cl(.8), inner: win(36, 22, 40, 46) + skirt }, end2 = { css: cl(.78), inner: win(36, 22, 40, 46) + skirt };
+    var roofC = '#58626E', ph = Math.sqrt(W * W / 4 + P * P), a = Math.atan(P / (W / 2)) * 180 / Math.PI, ry = -(8 + H + P / 2);
+    var seam = function (k) { return 'background:repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0 2px,transparent 2px 16px),' + sh(roofC, k) + ';'; };
+    var tri = function (k) { return 'background:' + sh(B, k) + ';clip-path:polygon(50% 0,100% 100%,0 100%);'; };
+    return box(L - 24, 8, W - 28, 'translate3d(0,-4px,0)', { all: 1, front: { css: 'background:#2b3038' }, back: { css: 'background:#2b3038' }, right: { css: 'background:#22262c' }, left: { css: 'background:#22262c' }, top: { css: 'background:#22262c' }, bottom: { css: 'background:#111' } }) +
+      box(L, H, W, 'translate3d(0,' + Y + 'px,0)', { front: front, back: back, right: end1, left: end2, top: { css: 'background:' + sh(B, .7) }, bottom: { css: 'background:#222' } }) +
+      '<div class="g" style="transform:translate3d(0,' + ry + 'px,' + W / 4 + 'px) rotateX(' + a + 'deg)">' + fc(L + 10, ph, '', seam(1)) + '</div>' +
+      '<div class="g" style="transform:translate3d(0,' + ry + 'px,' + -W / 4 + 'px) rotateY(180deg) rotateX(' + a + 'deg)">' + fc(L + 10, ph, '', seam(.78)) + '</div>' +
+      '<div class="g" style="transform:translate3d(' + (L / 2) + 'px,' + ry + 'px,0) rotateY(90deg)">' + fc(W, P, '', tri(.8)) + '</div>' +
+      '<div class="g" style="transform:translate3d(' + (-L / 2) + 'px,' + ry + 'px,0) rotateY(-90deg)">' + fc(W, P, '', tri(.78)) + '</div>' +
+      box(44, 8, 24, 'translate3d(' + (-L / 2 + 53) + 'px,-4px,' + (W / 2 + 12) + 'px)', { all: 1, front: { css: 'background:#8a8f96' }, back: { css: 'background:#6e737a' }, right: { css: 'background:#7a7f86' }, left: { css: 'background:#7a7f86' }, top: { css: 'background:#a5aab1' }, bottom: { css: 'background:#444' } });
+  }
+  function cont(office) {
+    var L = 300, W = 120, H = 128, C = office ? '#E4E8EC' : '#A8452F';
+    var rib = function (k) {
+      return office
+        ? 'background:linear-gradient(180deg,transparent calc(100% - 14px),#1d3556 calc(100% - 14px)),repeating-linear-gradient(90deg,rgba(0,0,0,.07) 0 1px,transparent 1px 50px),' + sh(C, k) + ';'
+        : 'background:repeating-linear-gradient(90deg,rgba(0,0,0,.26) 0 2px,rgba(255,255,255,.07) 2px 4px,transparent 4px 10px),' + sh(C, k) + ';box-shadow:inset 0 0 0 5px rgba(0,0,0,.28);';
+    };
+    var logo = '<b class="lg">AURIAM HOME</b>';
+    var front, back, rt, lf;
+    if (office) {
+      front = { css: rib(1), inner: win(34, 28, 78, 52) + win(134, 28, 78, 52) + '<i class="ld" style="left:238px;top:30px;width:44px;height:94px"></i>' };
+      back = { css: rib(.92), inner: win(34, 28, 78, 52) + win(134, 28, 78, 52) + win(232, 28, 50, 52) };
+      rt = { css: rib(.8), inner: win(30, 34, 60, 50) }; lf = { css: rib(.78), inner: '' };
+    } else {
+      front = { css: rib(1), inner: logo }; back = { css: rib(.9), inner: logo };
+      var dr = function (x) { return '<i class="dr" style="left:' + x + 'px"><u></u></i>'; };
+      rt = { css: rib(.8).replace(/background:[^;]+;/, 'background:' + sh(C, .8) + ';'), inner: dr(5) + dr(63) };
+      lf = { css: 'background:' + sh(C, .78) + ';box-shadow:inset 0 0 0 5px rgba(0,0,0,.28);' };
+    }
+    var topC = office ? sh('#C9CFD6', .95) : sh(C, .85);
+    var s = box(L, H, W, 'translate3d(0,' + (-H / 2) + 'px,0)', { front: front, back: back, right: rt, left: lf, top: { css: (office ? 'background:' + topC : 'background:repeating-linear-gradient(90deg,rgba(0,0,0,.2) 0 2px,transparent 2px 10px),' + topC) + ';' }, bottom: { css: 'background:#222' } });
+    if (office) {
+      s += box(74, 4, 30, 'translate3d(' + (L / 2 - 65) + 'px,' + (-H + 28) + 'px,' + (W / 2 + 15) + 'px)', { front: { css: 'background:#1d3556' }, back: { css: 'background:#1d3556' }, right: { css: 'background:#14263F' }, left: { css: 'background:#14263F' }, top: { css: 'background:#2b4a75' }, bottom: { css: 'background:#0d1a2c' } });
+      s += box(50, 8, 24, 'translate3d(' + (L / 2 - 65) + 'px,-4px,' + (W / 2 + 12) + 'px)', { front: { css: 'background:#8a8f96' }, back: { css: 'background:#6e737a' }, right: { css: 'background:#7a7f86' }, left: { css: 'background:#7a7f86' }, top: { css: 'background:#a5aab1' }, bottom: { css: 'background:#444' } });
+      s += box(14, 30, 36, 'translate3d(' + (-L / 2 - 7) + 'px,' + (-H + 50) + 'px,0)', { front: { css: 'background:#cfd5dc' }, back: { css: 'background:#b9c0c8' }, right: { css: 'background:#aab1ba' }, left: { css: 'background:#9aa2ac;background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.25) 0 2px,transparent 2px 5px)' }, top: { css: 'background:#dfe4ea' }, bottom: { css: 'background:#555' } });
+    }
+    return s;
+  }
+  function build3d(st, i) {
+    var sc = st.querySelector('.ro');
+    sc.innerHTML = [mobileHome, function () { return cont(false); }, function () { return cont(true); }][i]();
+    b3.built = i;
+  }
+  function band3d() {
+    var hero = app.querySelector('.hero');
+    if (!hero || app.querySelector('.lf-3d')) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+    var s = document.createElement('section');
+    s.className = 'lf-3d';
+    s.setAttribute('aria-label', l === 'en' ? 'Our models in 3D' : 'Nos modèles en 3D');
+    s.innerHTML = '<div class="b3w"><p class="b3k">' + (l === 'en' ? 'Our models in 3D' : 'Nos modèles en 3D') + '</p>' +
+      '<div class="st"><div class="fl"></div><div class="sc"><div class="sd"></div><div class="ro"></div></div></div>' +
+      '<p class="b3n" aria-live="polite"></p><div class="b3d">' + M3[l].map(function (n, k) { return '<button type="button" data-k="' + k + '" aria-label="' + n + '"></button>'; }).join('') + '</div>' +
+      '<a class="b3a" href="#/all">' + (l === 'en' ? 'See all products' : 'Voir tous les produits') + ' →</a></div>';
+    var st = app.querySelector('.lf-strip');
+    (st || hero).parentNode.insertBefore(s, (st || hero).nextSibling);
+    b3.built = -1;
+    b3io && b3io.observe(s);
+  }
+  var b3io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { b3.vis = es[0].isIntersecting; }) : null;
+  if (!b3io) b3.vis = true;
+  var CYC = 8600, INT = 700, OUT = 600;
+  function frame3d(now) {
+    requestAnimationFrame(frame3d);
+    var dt = Math.min(80, now - (b3.last || now)); b3.last = now;
+    var s = app.querySelector('.lf-3d'); if (!s) return;
+    var st = s.querySelector('.st'), ro = s.querySelector('.ro'), sc = s.querySelector('.sc');
+    var w = st.clientWidth; sc.style.setProperty('--k', Math.min(1.15, w / 470).toFixed(3));
+    if (!b3.vis && b3.built >= 0) return;
+    if (!reduce && !b3.dragging) b3.t += dt;
+    if (b3.t >= CYC) { b3.t = 0; b3.i = (b3.i + 1) % 3; }
+    if (b3.built !== b3.i) { build3d(st, b3.i); s.querySelector('.b3n').textContent = M3[document.documentElement.lang === 'en' ? 'en' : 'fr'][b3.i]; Array.prototype.forEach.call(s.querySelectorAll('.b3d button'), function (b, k) { b.classList.toggle('on', k === b3.i); }); }
+    var t = reduce ? 0.35 * CYC : b3.t, ang, sca = 1, op = 1;
+    ang = 25 + 360 * Math.min(1, t / (CYC - OUT)) * 1 + b3.drag;
+    var e = Math.min(1, t / INT); sca = 0.78 + 0.22 * (1 - Math.pow(1 - e, 3)); op = e;
+    if (t > CYC - OUT) { var o = (t - (CYC - OUT)) / OUT; op = 1 - o; sca = 1 - 0.1 * o; }
+    ro.style.transform = 'rotateY(' + ang.toFixed(2) + 'deg) scale(' + sca.toFixed(3) + ')';
+    ro.style.opacity = op.toFixed(3);
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.lf-3d .b3d button'); if (!b) return;
+    b3.i = +b.dataset.k; b3.t = 0; b3.drag = 0;
+  });
+  (function () {
+    var x0 = null;
+    document.addEventListener('pointerdown', function (e) { var s = e.target.closest && e.target.closest('.lf-3d .st'); if (!s) return; x0 = e.clientX; b3.dragging = true; });
+    addEventListener('pointermove', function (e) { if (x0 === null) return; b3.drag += (e.clientX - x0) * 0.7; x0 = e.clientX; });
+    addEventListener('pointerup', function () { x0 = null; b3.dragging = false; });
+    addEventListener('pointercancel', function () { x0 = null; b3.dragging = false; });
+  })();
+  requestAnimationFrame(frame3d);
+
   function scan() {
-    strip(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
