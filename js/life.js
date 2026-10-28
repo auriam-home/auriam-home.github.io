@@ -166,8 +166,30 @@
     a.setAttribute('title', en ? 'Email us' : 'Nous écrire par e-mail');
   }
 
+  /* menu : langue en haut, rubriques regroupées, bouton devis en bas */
+  function menu() {
+    var dr = app.querySelector('.ov .dr');
+    if (!dr || dr.__lm) return;
+    dr.__lm = 1;
+    var en = document.documentElement.lang === 'en';
+    var head = dr.firstElementChild, lang = dr.querySelector('.lang'), lab = lang && lang.previousElementSibling;
+    if (!head || !lang || !lab) return;
+    dr.classList.add('lf-dr');
+    var row = document.createElement('div'); row.className = 'lf-langrow';
+    row.appendChild(lab); row.appendChild(lang);
+    dr.insertBefore(row, head.nextSibling);
+    function title(txt, before) { var t = document.createElement('div'); t.className = 'lf-mt'; t.textContent = txt; dr.insertBefore(t, before); }
+    var firstProd = dr.querySelector('a.l[href^="#/c/"],a.l[href="#/all"]'), firstInfo = dr.querySelector('a.l[href="#/livraison"]');
+    if (firstProd) title(en ? 'Our products' : 'Nos produits', firstProd);
+    if (firstInfo) title(en ? 'Information' : 'Informations', firstInfo);
+    var cta = document.createElement('a'); cta.className = 'lf-mcta'; cta.setAttribute('href', '#/contact'); cta.setAttribute('data-act', 'close');
+    cta.textContent = en ? 'Request a quote' : 'Demander un devis';
+    dr.appendChild(cta);
+    Array.prototype.forEach.call(dr.querySelectorAll('a.l,.lf-mt'), function (el, i) { el.style.setProperty('--i', i); });
+  }
+
   function scan() {
-    strip(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn();
+    strip(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
