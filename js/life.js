@@ -371,8 +371,41 @@
     var t = app.querySelector('.lf-tl'); if (!t || t.__w) return; t.__w = 1;
     if (tlio) tlio.observe(t); else t.classList.add('lf-go');
   }
+  /* chiffres qui défilent (uniquement ceux déjà annoncés sur le site) */
+  var CT = {
+    fr: [[36, 0, 'mois', 'Financement échelonné jusqu’à'], [30, 0, 'jours', 'Validité de votre devis gratuit'], [7, 10, 'jours', 'En livraison dédiée'], [2, 3, 'semaines', 'En livraison groupée, tarif avantageux']],
+    en: [[36, 0, 'months', 'Instalment financing up to'], [30, 0, 'days', 'Validity of your free quote'], [7, 10, 'days', 'With dedicated delivery'], [2, 3, 'weeks', 'With grouped delivery, better rate']]
+  };
+  function counters() {
+    var tl = app.querySelector('.lf-tl');
+    if (!tl || app.querySelector('.lf-ct')) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+    var s = document.createElement('section');
+    s.className = 'lf-ct';
+    s.innerHTML = '<div class="ctw">' + CT[l].map(function (c) {
+      return '<div><p class="cl">' + c[3] + '</p><p class="cn"><b data-a="' + c[0] + '" data-b="' + c[1] + '">' + (c[1] ? c[0] + '–' + c[1] : c[0]) + '</b> <span>' + c[2] + '</span></p></div>';
+    }).join('') + '</div>';
+    tl.parentNode.insertBefore(s, tl.nextSibling);
+    if (reduce || !('IntersectionObserver' in window)) return;
+    Array.prototype.forEach.call(s.querySelectorAll('b'), function (b) { b.textContent = b.dataset.b > 0 ? '0–0' : '0'; });
+    var io2 = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      io2.disconnect();
+      var t0 = performance.now(), D = 1700;
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+        Array.prototype.forEach.call(s.querySelectorAll('b'), function (b) {
+          var a = +b.dataset.a, c = +b.dataset.b;
+          b.textContent = c ? Math.round(a * e) + '–' + Math.round(c * e) : Math.round(a * e);
+        });
+        if (p < 1) requestAnimationFrame(step);
+      })(t0);
+    }, { threshold: 0.5 });
+    io2.observe(s);
+  }
+
   function scan() {
-    strip(); band3d(); timeline(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); timeline(); counters(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
