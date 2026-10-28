@@ -162,3 +162,11 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
  .dr.lf-dr a.l,.dr.lf-dr .lf-mt{animation:lf-mi .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i)*35ms + 120ms)}
 }
 .lf-mcta{position:sticky;bottom:14px;box-shadow:0 8px 20px rgba(20,38,63,.25)}
+
+/* profondeur de l'en-tête */
+@media (prefers-reduced-motion:no-preference){
+ .hero .im{scale:1.18;will-change:translate}
+ .hero .t,.hero .cta{will-change:translate}
+}
+.hero .cta{position:relative}
+.hero .cta:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(260px circle at var(--gx,30%) var(--gy,0%),rgba(255,255,255,.2),rgba(255,255,255,0) 62%)}
