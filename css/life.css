@@ -170,3 +170,28 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 }
 .hero .cta{position:relative}
 .hero .cta:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(260px circle at var(--gx,30%) var(--gy,0%),rgba(255,255,255,.2),rgba(255,255,255,0) 62%)}
+
+/* bande 3D */
+.lf-3d{background:radial-gradient(120% 90% at 50% 0%,#1d3556 0%,#14263F 55%,#0F1C2E 100%);color:#fff;padding:30px 16px 26px;overflow:hidden}
+.lf-3d .b3w{max-width:760px;margin:0 auto;text-align:center}
+.lf-3d .b3k{font-size:12px;font-weight:600;letter-spacing:2.4px;text-transform:uppercase;color:#E0A55A;margin:0}
+.lf-3d .st{position:relative;height:300px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.lf-3d .sc{position:absolute;left:50%;top:76%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(-17deg) scale(var(--k,1))}
+.lf-3d .ro{position:absolute;left:0;top:0;transform-style:preserve-3d}
+.lf-3d .g{position:absolute;left:0;top:0;transform-style:preserve-3d}
+.lf-3d .f{position:absolute;left:0;top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.lf-3d .sd{position:absolute;left:0;top:0;width:470px;height:210px;margin:-105px 0 0 -235px;transform:rotateX(90deg);background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0));filter:blur(4px)}
+.lf-3d .fl{position:absolute;left:50%;top:70%;width:520px;height:130px;margin:0 0 0 -260px;background:radial-gradient(closest-side,rgba(224,165,90,.16),rgba(224,165,90,0));pointer-events:none}
+.lf-3d .lw{position:absolute;background:linear-gradient(135deg,#d6e8f5 0%,#7fa8c6 60%,#5d86a5 100%);border:3px solid #fff;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.25);box-sizing:border-box}
+.lf-3d .lw:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff}
+.lf-3d .ld{position:absolute;background:linear-gradient(180deg,#d6e8f5 0 38%,#f3efe8 38%);border:3px solid #fff;box-sizing:border-box;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.lf-3d .lg{position:absolute;left:18px;top:22px;font-size:15px;letter-spacing:5px;font-weight:700;color:rgba(255,236,214,.88);white-space:nowrap}
+.lf-3d .dr{position:absolute;top:5px;bottom:5px;width:52px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.3) 0 2px,transparent 2px 13px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.lf-3d .dr u{position:absolute;left:8px;top:50%;width:5px;height:22px;margin-top:-11px;background:#d9d9d9;border-radius:2px}
+.lf-3d .b3n{font-size:20px;font-weight:600;margin:4px 0 12px;min-height:30px}
+.lf-3d .b3d{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.lf-3d .b3d button{width:10px;height:10px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.3);cursor:pointer;position:relative}
+.lf-3d .b3d button:before{content:"";position:absolute;inset:-12px}
+.lf-3d .b3d button.on{background:#C98A3D;transform:scale(1.35)}
+.lf-3d .b3a{display:inline-block;color:#E0A55A;font-weight:600;font-size:14px;text-decoration:none;border-bottom:1px solid rgba(224,165,90,.5);padding-bottom:2px}
+@media(max-width:700px){.lf-3d .st{height:270px}}
