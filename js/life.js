@@ -316,8 +316,63 @@
   })();
   requestAnimationFrame(frame3d);
 
+  /* frise « de l'achat à la livraison » */
+  var TL = {
+    fr: ['De l’achat à la livraison', [['Choix du modèle', 'Neuf ou d’occasion, maison mobile ou conteneur.'], ['Devis gratuit', 'Valable 30 jours.'], ['Financement', 'Paiement échelonné possible.'], ['Livraison', 'Partout en Europe.'], ['Installation', 'Déchargement et installation offerts.']]],
+    en: ['From purchase to delivery', [['Choose your model', 'New or used, mobile home or container.'], ['Free quote', 'Valid for 30 days.'], ['Financing', 'Instalment payment available.'], ['Delivery', 'Across Europe.'], ['Installation', 'Free unloading and installation.']]]
+  };
+  var TRUCK = '<svg viewBox="0 0 48 28" width="40" height="23" aria-hidden="true"><rect x="1" y="4" width="28" height="15" rx="2" fill="#C98A3D"/><path d="M30 8h9l7 6v5H30z" fill="#14263F"/><path d="M33 10h5l4 4h-9z" fill="#BFD8EA"/><circle cx="10" cy="21" r="4" fill="#14263F" stroke="#fff" stroke-width="1.5"/><circle cx="38" cy="21" r="4" fill="#14263F" stroke="#fff" stroke-width="1.5"/></svg>';
+  function timeline() {
+    var why = app.querySelector('.why');
+    if (!why || app.querySelector('.lf-tl')) return;
+    var sec = why.closest('section'); if (!sec) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr', d = TL[l];
+    var s = document.createElement('section');
+    s.className = 'wrap sec lf-tl';
+    s.innerHTML = '<h2>' + d[0] + '</h2><ol class="tl"><li class="tr" aria-hidden="true"><span class="tk">' + TRUCK + '</span></li>' +
+      d[1].map(function (x, i) { return '<li style="--i:' + i + '"><b>' + (i + 1) + '</b><div><strong>' + x[0] + '</strong><span>' + x[1] + '</span></div></li>'; }).join('') + '</ol>';
+    sec.parentNode.insertBefore(s, sec);
+  }
+  /* cartes qui s'inclinent */
+  (function () {
+    var cur = null, rst = 0;
+    function tilt(e, el) {
+      var r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.classList.add('lf-tilt');
+      el.style.setProperty('--ry', ((x - .5) * 9).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', ((.5 - y) * 9).toFixed(2) + 'deg');
+      el.style.setProperty('--gx', (x * 100).toFixed(0) + '%'); el.style.setProperty('--gy', (y * 100).toFixed(0) + '%');
+    }
+    function off(el) { if (!el) return; el.classList.remove('lf-tilt'); el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); }
+    if (reduce) return;
+    document.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var el = e.target.closest && e.target.closest('.card,.tile');
+      if (el !== cur) { off(cur); cur = el; }
+      if (el) tilt(e, el);
+    }, { passive: true });
+    document.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      var el = e.target.closest && e.target.closest('.card,.tile'); if (!el) return;
+      clearTimeout(rst); cur = el; tilt(e, el); rst = setTimeout(function () { off(el); }, 380);
+    }, { passive: true });
+    document.addEventListener('pointerleave', function () { off(cur); cur = null; });
+  })();
+
+  var tlio = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var t = e.target, tl = t.querySelector('.tl');
+      if (tl) { t.style.setProperty('--th', (tl.offsetHeight - 36) + 'px'); t.style.setProperty('--tw', (tl.offsetWidth - 44) + 'px'); }
+      t.classList.add('lf-go'); tlio.unobserve(t);
+    });
+  }, { threshold: 0.35 }) : null;
+  function tlWatch() {
+    var t = app.querySelector('.lf-tl'); if (!t || t.__w) return; t.__w = 1;
+    if (tlio) tlio.observe(t); else t.classList.add('lf-go');
+  }
   function scan() {
-    strip(); band3d(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); timeline(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
