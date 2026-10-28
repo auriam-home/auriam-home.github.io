@@ -404,8 +404,92 @@
     io2.observe(s);
   }
 
+  /* catégories en carrousel 3D que l'on fait tourner du doigt */
+  var RG = { el: null, tiles: [], pos: 0, vel: 0, drag: false, x0: 0, p0: 0, moved: 0, idle: 0, vis: false, snap: null, hint: null };
+  var rgio = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { RG.vis = es[0].isIntersecting; }, { threshold: 0.05 }) : null;
+  function catRing() {
+    var el = app.querySelector('.tiles');
+    if (!el || el.__ring) return;
+    var tiles = Array.prototype.slice.call(el.querySelectorAll('.tile'));
+    if (tiles.length < 2) return;
+    el.__ring = 1; el.classList.add('lf-ring');
+    var g = document.createElement('div'); g.className = 'rg';
+    tiles.forEach(function (t) { g.appendChild(t); });
+    el.appendChild(g);
+    var h = document.createElement('p'); h.className = 'rh';
+    h.textContent = document.documentElement.lang === 'en' ? 'Drag to rotate' : 'Glissez pour faire tourner';
+    el.parentNode.insertBefore(h, el.nextSibling);
+    RG.el = el; RG.tiles = tiles; RG.hint = h; RG.pos = 0; RG.vel = 0; RG.snap = null; RG.idle = 0;
+    if (rgio) rgio.observe(el); else RG.vis = true;
+    ringDraw();
+  }
+  function ringDraw() {
+    var n = RG.tiles.length, fe = Math.min(n / 2, 2.2), w = RG.el.clientWidth, R = Math.max(300, Math.min(520, w * 0.62));
+    RG.tiles.forEach(function (t, i) {
+      var d = ((i - RG.pos) % n + n) % n; if (d > n / 2) d -= n;
+      var a = Math.abs(d), op = Math.max(0, Math.min(1, (fe - a) / (fe - 1)));
+      t.style.transform = 'translateX(' + (d * (w < 520 ? 150 : 250)).toFixed(1) + 'px) translateZ(' + (-a * 90).toFixed(1) + 'px) rotateY(' + (-d * 28).toFixed(2) + 'deg) scale(' + (1 - Math.min(a, 1.5) * 0.06).toFixed(3) + ')';
+      t.style.opacity = op.toFixed(3);
+      t.style.zIndex = String(Math.round(100 - a * 10));
+      t.style.filter = a > 0.05 ? 'brightness(' + (1 - Math.min(a, 1) * 0.22).toFixed(2) + ')' : 'none';
+      t.style.pointerEvents = op < 0.2 ? 'none' : '';
+    });
+  }
+  function ringLoop(now) {
+    requestAnimationFrame(ringLoop);
+    if (!RG.el || !RG.el.isConnected) { RG.el = null; return; }
+    if (!RG.vis) return;
+    var dt = Math.min(50, now - (RG.last || now)) / 1000; RG.last = now;
+    var n = RG.tiles.length;
+    if (!RG.drag) {
+      if (RG.snap !== null) {
+        RG.pos += (RG.snap - RG.pos) * Math.min(1, dt * 9);
+        if (Math.abs(RG.snap - RG.pos) < 0.002) { RG.pos = RG.snap; RG.snap = null; }
+      } else if (Math.abs(RG.vel) > 0.05) {
+        RG.pos += RG.vel * dt; RG.vel *= Math.pow(0.04, dt);
+        if (Math.abs(RG.vel) <= 0.35) RG.snap = Math.round(RG.pos);
+      } else if (!reduce) {
+        RG.idle += dt;
+        if (RG.idle > 3.6) { RG.idle = 0; RG.snap = Math.round(RG.pos) + 1; }
+      }
+    }
+    RG.pos = ((RG.pos % n) + n) % n === RG.pos ? RG.pos : RG.pos;
+    ringDraw();
+  }
+  (function () {
+    function down(e) {
+      var el = e.target.closest && e.target.closest('.tiles.lf-ring'); if (!el || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      RG.drag = true; RG.x0 = e.clientX; RG.p0 = RG.pos; RG.moved = 0; RG.vel = 0; RG.snap = null; RG.lx = e.clientX; RG.lt = performance.now(); RG.idle = 0;
+      el.classList.add('lf-grab');
+    }
+    function move(e) {
+      if (!RG.drag) return;
+      var step = RG.el.clientWidth < 520 ? 110 : 170, dx = e.clientX - RG.x0;
+      RG.moved = Math.max(RG.moved, Math.abs(dx));
+      var np = RG.p0 - dx / step, now = performance.now(), dtm = Math.max(8, now - RG.lt) / 1000;
+      RG.vel = RG.vel * 0.6 + ((np - RG.pos) / dtm) * 0.4; RG.pos = np; RG.lt = now;
+      if (RG.hint) RG.hint.style.opacity = '0';
+    }
+    function up() {
+      if (!RG.drag) return; RG.drag = false;
+      if (RG.el) RG.el.classList.remove('lf-grab');
+      if (RG.moved > 8) { RG.snap = null; if (Math.abs(RG.vel) < 0.6) RG.snap = Math.round(RG.pos); }
+      RG.idle = -3;
+    }
+    document.addEventListener('pointerdown', down, { passive: true });
+    addEventListener('pointermove', move, { passive: true });
+    addEventListener('pointerup', up); addEventListener('pointercancel', up);
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('.tiles.lf-ring .tile'); if (!t) return;
+      if (RG.moved > 8) { e.preventDefault(); e.stopPropagation(); RG.moved = 0; return; }
+      var i = RG.tiles.indexOf(t), n = RG.tiles.length, d = ((i - RG.pos) % n + n) % n; if (d > n / 2) d -= n;
+      if (Math.abs(d) > 0.4) { e.preventDefault(); e.stopPropagation(); RG.vel = 0; RG.snap = Math.round(RG.pos + d); RG.idle = -3; }
+    }, true);
+    requestAnimationFrame(ringLoop);
+  })();
+
   function scan() {
-    strip(); band3d(); timeline(); counters(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
