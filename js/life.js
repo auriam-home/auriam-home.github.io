@@ -347,7 +347,7 @@
     if (reduce) return;
     document.addEventListener('pointermove', function (e) {
       if (e.pointerType !== 'mouse') return;
-      var el = e.target.closest && e.target.closest('.card,.tile');
+      var el = e.target.closest && e.target.closest('.card,.tile'); if (el && el.closest('.lf-ring')) el = null;
       if (el !== cur) { off(cur); cur = el; }
       if (el) tilt(e, el);
     }, { passive: true });
@@ -419,11 +419,22 @@
     var h = document.createElement('p'); h.className = 'rh';
     h.textContent = document.documentElement.lang === 'en' ? 'Drag to rotate' : 'Glissez pour faire tourner';
     el.parentNode.insertBefore(h, el.nextSibling);
+    var en = document.documentElement.lang === 'en', ui = document.createElement('div');
+    ui.className = 'c3ui';
+    ui.innerHTML = '<button type="button" class="c3b" data-d="-1" aria-label="' + (en ? 'Previous' : 'Précédent') + '">‹</button><div class="c3d">' + tiles.map(function () { return '<i></i>'; }).join('') + '</div><button type="button" class="c3b" data-d="1" aria-label="' + (en ? 'Next' : 'Suivant') + '">›</button>';
+    el.parentNode.insertBefore(ui, h);
+    ui.addEventListener('click', function (e) {
+      var b = e.target.closest('.c3b'); if (!b) return;
+      RG.vel = 0; RG.snap = Math.round(RG.pos) + (+b.dataset.d); RG.idle = -3; if (RG.hint) RG.hint.style.opacity = '0';
+    });
+    RG.ui = ui;
     RG.el = el; RG.tiles = tiles; RG.hint = h; RG.pos = 0; RG.vel = 0; RG.snap = null; RG.idle = 0;
     if (rgio) rgio.observe(el); else RG.vis = true;
     ringDraw();
   }
   function ringDraw() {
+    var n0 = RG.tiles.length, cu = ((Math.round(RG.pos) % n0) + n0) % n0;
+    if (RG.ui) Array.prototype.forEach.call(RG.ui.querySelectorAll('.c3d i'), function (d, i) { d.className = i === cu ? 'on' : ''; });
     var n = RG.tiles.length, fe = Math.min(n / 2, 2.2), w = RG.el.clientWidth, R = Math.max(300, Math.min(520, w * 0.62));
     RG.tiles.forEach(function (t, i) {
       var d = ((i - RG.pos) % n + n) % n; if (d > n / 2) d -= n;
