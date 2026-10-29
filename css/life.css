@@ -172,10 +172,12 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .hero .cta:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(260px circle at var(--gx,30%) var(--gy,0%),rgba(255,255,255,.2),rgba(255,255,255,0) 62%)}
 
 /* bande 3D */
-.lf-3d{background:radial-gradient(120% 90% at 50% 0%,#1d3556 0%,#14263F 55%,#0F1C2E 100%);color:#fff;padding:30px 16px 26px;overflow:hidden}
+.lf-3d{position:relative;background:radial-gradient(90% 70% at 50% 38%,#2a4a75 0%,#1d3556 45%,#14263F 100%);color:#fff;padding:18px 16px 30px;overflow:hidden}
+.lf-3d:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#C98A3D 30%,#E0A55A 50%,#C98A3D 70%,transparent)}
+.lf-3d:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(180deg,rgba(15,28,46,0),rgba(15,28,46,.55));pointer-events:none}
 .lf-3d .b3w{max-width:760px;margin:0 auto;text-align:center}
 .lf-3d .b3k{font-size:12px;font-weight:600;letter-spacing:2.4px;text-transform:uppercase;color:#E0A55A;margin:0}
-.lf-3d .st{position:relative;height:300px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.lf-3d .st{position:relative;height:310px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .lf-3d .sc{position:absolute;left:50%;top:76%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(-17deg) scale(var(--k,1))}
 .lf-3d .ro{position:absolute;left:0;top:0;transform-style:preserve-3d}
 .lf-3d .g{position:absolute;left:0;top:0;transform-style:preserve-3d}
@@ -188,7 +190,7 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-3d .lg{position:absolute;left:18px;top:22px;font-size:15px;letter-spacing:5px;font-weight:700;color:rgba(255,236,214,.88);white-space:nowrap}
 .lf-3d .dr{position:absolute;top:5px;bottom:5px;width:52px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.3) 0 2px,transparent 2px 13px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
 .lf-3d .dr u{position:absolute;left:8px;top:50%;width:5px;height:22px;margin-top:-11px;background:#d9d9d9;border-radius:2px}
-.lf-3d .b3n{font-size:20px;font-weight:600;margin:4px 0 12px;min-height:30px}
+.lf-3d .b3n{font-size:24px;font-weight:600;letter-spacing:.5px;margin:2px 0 14px;min-height:34px}
 .lf-3d .b3d{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
 .lf-3d .b3d button{width:10px;height:10px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.3);cursor:pointer;position:relative}
 .lf-3d .b3d button:before{content:"";position:absolute;inset:-12px}
