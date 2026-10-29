@@ -499,8 +499,81 @@
     requestAnimationFrame(ringLoop);
   })();
 
+  /* filtres en plus sur la liste : chambres, année, marque (lus sur les cartes) */
+  var XF = { bed: 'all', yr: 'all', br: 'all' };
+  var BR = [['Trigano', /trigano|sir[eè]ne|kaleo/i], ['IRM', /\birm\b/i], ['O’Hara', /o['’]?hara/i], ['Sun Roller', /sun ?roller/i], ['Sunseeker', /sunseeker/i], ['Willerby', /willerby/i], ['Louisiane', /louisiane/i], ['Rapid’Home', /rapid/i]];
+  function cinfo(c) {
+    if (c.__xi) return c.__xi;
+    var t = (c.querySelector('h3') || {}).textContent || '', b = (c.querySelector('.badge') || {}).textContent || '', s = (c.querySelector('.sp') || {}).textContent || '';
+    var y = (b.match(/\b(19|20)\d\d\b/) || [])[0], bd = (s.match(/(\d+)\s*(chambre|bedroom)/i) || [])[1], br = '';
+    for (var i = 0; i < BR.length; i++) if (BR[i][1].test(t)) { br = BR[i][0]; break; }
+    return (c.__xi = { y: y ? +y : 0, bed: bd ? +bd : 0, br: br });
+  }
+  function xfilters() {
+    var price = app.querySelector('#f-price'), grid = app.querySelector('#grid');
+    if (!price || !grid) return;
+    var en = document.documentElement.lang === 'en', row = app.querySelector('.lf-xf');
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+    var brands = [], other = false;
+    cards.forEach(function (c) { var b = cinfo(c).br; if (b) { if (brands.indexOf(b) < 0) brands.push(b); } else other = true; });
+    brands.sort();
+    var sig = brands.join('|') + (other ? '+' : '');
+    if (!row) {
+      row = document.createElement('div'); row.className = 'filters lf-xf';
+      row.innerHTML = '<select id="lf-fb" aria-label="' + (en ? 'Bedrooms' : 'Chambres') + '"></select><select id="lf-fy" aria-label="' + (en ? 'Year' : 'Année') + '"></select><select id="lf-fm" aria-label="' + (en ? 'Brand' : 'Marque') + '"></select>' +
+        '<button type="button" class="lf-clr" hidden>' + (en ? 'Clear filters' : 'Effacer les filtres') + '</button>';
+      price.parentNode.parentNode.insertBefore(row, price.parentNode.nextSibling);
+      var o = function (a) { return a.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + '</option>'; }).join(''); };
+      row.querySelector('#lf-fb').innerHTML = o([['all', en ? 'All bedrooms' : 'Toutes chambres'], ['1', en ? '1 bedroom' : '1 chambre'], ['2', en ? '2 bedrooms' : '2 chambres'], ['3', en ? '3 or more' : '3 et plus']]);
+      row.querySelector('#lf-fy').innerHTML = o([['all', en ? 'All years' : 'Toutes années'], ['new', en ? '2024 and newer' : '2024 et plus'], ['mid', en ? '2020 to 2023' : '2020 à 2023'], ['old', en ? 'Before 2020' : 'Avant 2020']]);
+      row.__sig = null;
+    }
+    if (row.__sig !== sig) {
+      row.__sig = sig;
+      var m = row.querySelector('#lf-fm');
+      m.innerHTML = '<option value="all">' + (en ? 'All brands' : 'Toutes marques') + '</option>' + brands.map(function (b) { return '<option value="' + b + '">' + b + '</option>'; }).join('') + (other ? '<option value="other">' + (en ? 'Other / not stated' : 'Autres / non indiquée') + '</option>' : '');
+      if ([].concat(brands, other ? ['other'] : [], ['all']).indexOf(XF.br) < 0) XF.br = 'all';
+    }
+    row.querySelector('#lf-fb').value = XF.bed; row.querySelector('#lf-fy').value = XF.yr; row.querySelector('#lf-fm').value = XF.br;
+    var n = 0;
+    cards.forEach(function (c) {
+      var i = cinfo(c), ok = true;
+      if (XF.bed !== 'all') ok = ok && (XF.bed === '3' ? i.bed >= 3 : i.bed === +XF.bed);
+      if (XF.yr === 'new') ok = ok && i.y >= 2024; else if (XF.yr === 'mid') ok = ok && i.y >= 2020 && i.y <= 2023; else if (XF.yr === 'old') ok = ok && i.y > 0 && i.y < 2020;
+      if (XF.br !== 'all') ok = ok && (XF.br === 'other' ? !i.br : i.br === XF.br);
+      var d = ok ? '' : 'none'; if (c.style.display !== d) c.style.display = d;
+      if (ok) n++;
+    });
+    var act = XF.bed !== 'all' || XF.yr !== 'all' || XF.br !== 'all';
+    var clr = row.querySelector('.lf-clr'); if (clr.hidden !== !act) clr.hidden = !act;
+    var gd = grid.querySelector('.grid'), msg = grid.querySelector('.lf-none');
+    if (gd && act && n === 0) {
+      if (!msg) { msg = document.createElement('div'); msg.className = 'empty lf-none'; msg.textContent = en ? 'No model matches these filters.' : 'Aucun modèle ne correspond à ces filtres.'; grid.appendChild(msg); }
+    } else if (msg) msg.remove();
+    var sub = grid.querySelector('.sub');
+    if (sub) {
+      if (sub.__o === undefined) sub.__o = sub.textContent;
+      var tx = act ? n + (en ? (n > 1 ? ' models' : ' model') : (n > 1 ? ' modèles' : ' modèle')) : sub.__o;
+      if (sub.textContent !== tx) sub.textContent = tx;
+    }
+  }
+  document.addEventListener('change', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'lf-fb') XF.bed = e.target.value; else if (id === 'lf-fy') XF.yr = e.target.value; else if (id === 'lf-fm') XF.br = e.target.value; else return;
+    xfilters();
+  });
+  document.addEventListener('click', function (e) {
+    if (!(e.target.closest && e.target.closest('.lf-clr'))) return;
+    XF.bed = XF.yr = XF.br = 'all';
+    [['f-price', 'all'], ['f-surf', 'all'], ['f-sort', 'site']].forEach(function (x) {
+      var s = app.querySelector('#' + x[0]); if (s && s.value !== x[1]) { s.value = x[1]; s.dispatchEvent(new Event('change', { bubbles: true })); }
+    });
+    var st = app.querySelector('.chip[data-act="st"][data-v="all"]'); if (st && !st.classList.contains('on')) st.click();
+    xfilters();
+  });
+
   function scan() {
-    strip(); band3d(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
