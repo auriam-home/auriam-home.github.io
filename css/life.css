@@ -266,3 +266,8 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .tiles.lf-ring .tile.lf-pre{opacity:1}
 .rh{text-align:center;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin:6px 0 0;transition:opacity .5s}
 @media(max-width:520px){.tiles.lf-ring{height:310px}.tiles.lf-ring .tile{left:-120px;width:240px}}
+
+/* filtres en plus */
+.lf-xf{margin-top:-4px}
+.lf-xf .lf-clr{min-height:44px;border:0;background:none;color:var(--cu-d,#9A6A27);font:inherit;font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 6px}
+.lf-xf .lf-clr[hidden]{display:none}
