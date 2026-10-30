@@ -1,209 +1,773 @@
-// Génère des pages HTML statiques (une par produit et par catégorie), sitemap.xml et robots.txt.
-// Lancé automatiquement par GitHub (voir .github/workflows/seo-pages.yml). Aucune dépendance.
-import fs from 'node:fs';
-import path from 'node:path';
+/* AURIAM HOME : mouvement et vie. S'ajoute au site sans toucher à son code. */
+(function () {
+  'use strict';
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var app = document.getElementById('app');
+  if (!app) return;
 
-const ROOT = process.cwd();
-const CFG = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo.config.json'), 'utf8'));
-const SITE = CFG.siteUrl.replace(/\/+$/, '');
-const NAME = CFG.siteName;
-
-/* ---------- données ---------- */
-async function loadData() {
-  if (process.env.SEO_MOCK_FILE) return JSON.parse(fs.readFileSync(process.env.SEO_MOCK_FILE, 'utf8'));
-  const conf = fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8');
-  const url = /url:\s*"([^"]+)"/.exec(conf)[1];
-  const key = /key:\s*"([^"]+)"/.exec(conf)[1];
-  const get = async (q) => {
-    const r = await fetch(url + '/rest/v1/' + q, { headers: { apikey: key, Authorization: 'Bearer ' + key } });
-    if (!r.ok) throw new Error('Supabase ' + q + ' -> ' + r.status);
-    return r.json();
+  var STRIP = {
+    fr: ['Livraison dans toute l’Europe', 'Installation et déchargement offerts', 'Financement échelonné jusqu’à 36 mois', 'Devis gratuit, valable 30 jours', 'Visites au parc d’exposition de Périgueux'],
+    en: ['Delivery across Europe', 'Free unloading and installation', 'Instalment financing up to 36 months', 'Free quote, valid for 30 days', 'Showroom visits in Périgueux']
   };
-  const [categories, products, settings] = await Promise.all([
-    get('categories?select=*&order=sort_order'),
-    get('products?select=*&order=sort_order,created_at'),
-    get('settings?select=*')
-  ]);
-  return { categories, products, settings };
-}
-
-/* ---------- utilitaires ---------- */
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const nl = (s) => esc(s).replace(/\n/g, '<br>');
-const fr = (n) => Number(n).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
-const money = (n) => (n == null || n === '' ? 'Sur demande' : fr(n) + ' €');
-const slugify = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70).replace(/-+$/, '');
-const abs = (u) => (/^https?:\/\//.test(u) ? u : SITE + '/' + String(u).replace(/^\/+/, ''));
-const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length <= n ? s : s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…'; };
-const ld = (o) => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, '\\u003c') + '</script>';
-const digits = (s) => String(s || '').replace(/\D/g, '');
-const txt = (p, k) => (p[k + '_fr'] && String(p[k + '_fr']).trim()) || (p[k + '_en'] && String(p[k + '_en']).trim()) || '';
-const list = (p, k) => { const v = Array.isArray(p[k + '_fr']) && p[k + '_fr'].length ? p[k + '_fr'] : p[k + '_en']; return Array.isArray(v) ? v.filter(Boolean) : []; };
-function photos(p) {
-  const a = Array.isArray(p.photos) ? p.photos : [];
-  const r = (u) => (u && !/^https?:\/\//.test(u) ? '/' + String(u).replace(/^\/+/, '') : u);
-  return a.map((x) => (typeof x === 'string' ? { full: x, thumb: x } : { full: x.full || x.thumb, thumb: x.thumb || x.full })).filter((x) => x.full).map((x) => ({ full: r(x.full), thumb: r(x.thumb) }));
-}
-
-const D = await loadData();
-const S = {}; (D.settings || []).forEach((x) => { S[x.key] = x.value; });
-const cats = D.categories || [];
-const prods = D.products || [];
-const catName = (slug) => { const c = cats.find((x) => x.slug === slug); return c ? c.name_fr || c.name_en : slug; };
-
-/* adresses : stables et uniques (titre + 6 derniers signes de l'identifiant) */
-const used = new Set();
-prods.forEach((p) => {
-  const idPart = String(p.id ?? p.slug ?? '').replace(/[^a-z0-9]/gi, '').toLowerCase().slice(-6);
-  let s = slugify(txt(p, 'title')) || 'produit';
-  if (used.has(s)) s += '-' + idPart;
-  while (used.has(s)) s += 'x';
-  used.add(s); p._slug = s;
-});
-const pUrl = (p) => '/produits/' + p._slug + '/';
-const cUrl = (c) => '/categories/' + c.slug + '/';
-
-function waHref(msg) {
-  const n = digits(S.whatsapp);
-  return n ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(msg) : null;
-}
-const spaLink = (hash) => '/#/' + hash;
-
-/* ---------- gabarit ---------- */
-function layout({ title, desc, path: p, ogImage, body, jsonld = [], type = 'website' }) {
-  const canon = SITE + p;
-  return '<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<title>' + esc(title) + '</title><meta name="description" content="' + esc(desc) + '">' +
-    '<link rel="canonical" href="' + esc(canon) + '"><meta name="theme-color" content="#14263F">' +
-    '<meta property="og:site_name" content="' + esc(NAME) + '"><meta property="og:type" content="' + type + '"><meta property="og:locale" content="fr_FR">' +
-    '<meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(desc) + '"><meta property="og:url" content="' + esc(canon) + '">' +
-    (ogImage ? '<meta property="og:image" content="' + esc(abs(ogImage)) + '"><meta name="twitter:card" content="summary_large_image">' : '') +
-    '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">' +
-    '<link rel="stylesheet" href="/css/site.css"><style>.seo-nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;font-weight:500}.pd .main{cursor:default}.th a{flex:none;width:76px;height:58px;border-radius:8px;overflow:hidden;background:#fff;border:2px solid transparent;display:block}.crumb{font-size:13px;color:var(--mut)}.crumb a{text-decoration:underline}</style>' +
-    jsonld.map(ld).join('') + '</head><body>' +
-    '<header class="top"><div class="wrap"><a class="logo" href="/" aria-label="' + esc(NAME) + '"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true"><path d="M12 90 L50 14 L88 90" fill="none" stroke="#14263F" stroke-width="14"/><rect x="27" y="54" width="46" height="23" fill="#C98A3D"/><path d="M38.5 54V77M50 54V77M61.5 54V77" stroke="#fff" stroke-width="2.5"/></svg><span><b>AURIAM</b><i>HOME</i></span></a>' +
-    '<nav class="seo-nav" aria-label="Navigation"><a href="/">Accueil</a><a href="/catalogue/">Catalogue</a></nav></div></header>' +
-    '<main>' + body + '</main>' + footer() + '</body></html>\n';
-}
-function footer() {
-  const wa = waHref('Bonjour AURIAM HOME, je souhaite des informations.');
-  return '<footer class="foot"><div class="wrap"><div><b style="font-size:18px;letter-spacing:3px">AURIAM <span style="color:#C98A3D">HOME</span></b>Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.</div>' +
-    '<div><b>Contact</b>' + esc(CFG.street) + ', ' + esc(CFG.postalCode) + ' ' + esc(CFG.city) + '<br>' + (S.email ? '<a href="mailto:' + esc(S.email) + '">' + esc(S.email) + '</a><br>' : '') + (S.phone ? esc(S.phone) + '<br>' : '') + (wa ? '<a href="' + esc(wa) + '" rel="noopener">WhatsApp</a>' : '<a href="/#/contact">Nous contacter</a>') + '</div>' +
-    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/#/mentions">Mentions légales</a><br><a href="/#/cgv">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
-}
-function card(p) {
-  const ph = photos(p)[0];
-  const sp = specs(p);
-  return '<a class="card" href="' + pUrl(p) + '">' + (ph ? '<div class="ph"><img loading="lazy" src="' + esc(ph.thumb) + '" alt="' + esc(txt(p, 'title')) + '"></div>' : '<div class="ph"></div>') +
-    '<div class="cb"><span class="badge">' + esc(badge(p)) + '</span><h3>' + esc(txt(p, 'title')) + '</h3><p class="sp">' + esc(sp) + '</p><p class="pr">' + esc(money(p.price)) + '</p></div></a>';
-}
-function badge(p) {
-  const y = p.year ? ' · ' + p.year : '';
-  return (p.category === 'neuve' ? 'Neuve' : p.category === 'occasion' ? 'Occasion' : catName(p.category)) + y;
-}
-const dims = (p) => (p.length_m && p.width_m ? fr(p.length_m) + ' × ' + fr(p.width_m) + ' m' : '');
-function specs(p) {
-  const a = [];
-  if (dims(p)) a.push(dims(p));
-  if (p.surface_m2) a.push(fr(p.surface_m2) + ' m²');
-  if (p.bedrooms) a.push(p.bedrooms + (p.bedrooms > 1 ? ' chambres' : ' chambre'));
-  return a.join(' · ');
-}
-
-/* ---------- pages ---------- */
-const files = new Map(); // chemin -> contenu
-const urls = [{ loc: '/', pr: '1.0' }];
-
-function productPage(p) {
-  const title = txt(p, 'title'), ph = photos(p), d = txt(p, 'desc'), url = pUrl(p);
-  const catSlug = p.category, catObj = cats.find((c) => c.slug === catSlug);
-  const rows = [['État', p.category === 'neuve' ? 'Neuf' : p.category === 'occasion' ? 'Occasion' : catName(p.category)]];
-  if (p.year) rows.push(['Année', p.year]);
-  if (dims(p)) rows.push(['Dimensions', dims(p)]);
-  if (p.surface_m2) rows.push(['Surface', fr(p.surface_m2) + ' m²']);
-  if (p.bedrooms) rows.push(['Chambres', p.bedrooms]);
-  const feat = list(p, 'features'), eq = list(p, 'equipment');
-  const sim = prods.filter((x) => x.category === p.category && x !== p).slice(0, 3);
-  const wa = waHref('Bonjour AURIAM HOME, je souhaite un devis pour : ' + title + (p.price ? ' (' + money(p.price) + ')' : '') + '.');
-  const metaDesc = clip(title + ' – ' + [p.year, specs(p), p.price ? money(p.price) : ''].filter(Boolean).join(', ') + '. ' + d, 158);
-  let h = '<section class="wrap" style="padding-top:28px"><p class="crumb"><a href="/">Accueil</a> › ' + (catObj ? '<a href="' + cUrl(catObj) + '">' + esc(catName(catSlug)) + '</a>' : esc(catName(catSlug))) + '</p><div class="pd"><div class="g">';
-  h += ph[0] ? '<img class="main" src="' + esc(ph[0].full) + '" alt="' + esc(title) + '">' : '';
-  if (ph.length > 1) h += '<div class="th">' + ph.map((x, i) => '<a href="' + esc(x.full) + '" target="_blank" rel="noopener"><img loading="lazy" src="' + esc(x.thumb) + '" alt="' + esc(title + ' – photo ' + (i + 1)) + '" style="width:100%;height:100%;object-fit:cover"></a>').join('') + '</div>';
-  h += '</div><div class="i"><span class="badge">' + esc(badge(p)) + '</span><h1>' + esc(title) + '</h1><div class="price">' + esc(money(p.price)) + '</div>' + (p.price ? '<div class="note">Prix indicatif, livraison et TVA non incluses.</div>' : '<div class="note"></div>');
-  if (d) h += '<p class="desc">' + nl(d) + '</p>';
-  h += '<div class="spec">' + rows.map((r) => '<div><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>').join('') + '</div>';
-  if (feat.length) h += '<div class="lst-t">Caractéristiques</div><ul class="lst">' + feat.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';
-  if (eq.length) h += '<div class="lst-t">Équipements</div><ul class="lst">' + eq.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';
-  h += '<a class="btn wa" href="' + esc(wa || '/#/contact') + '"' + (wa ? ' target="_blank" rel="noopener"' : '') + '>Demander un devis sur WhatsApp</a><div class="note" style="margin-top:10px">Le devis est gratuit et valable 30 jours.</div>';
-  h += '<p style="margin-top:14px"><a class="btn cu" href="' + spaLink('p/' + encodeURIComponent(p.id)) + '">Voir sur le site</a></p></div></div></section>';
-  if (sim.length) h += '<section class="wrap sec"><h2 style="font-size:22px">Dans la même catégorie</h2><div class="grid">' + sim.map(card).join('') + '</div></section>';
-  const product = {
-    '@context': 'https://schema.org', '@type': 'Product', name: title, description: clip(d || title, 500),
-    sku: String(p.id ?? p._slug), url: SITE + url, brand: { '@type': 'Brand', name: NAME },
-    category: catName(catSlug)
-  };
-  if (ph.length) product.image = ph.slice(0, 8).map((x) => abs(x.full));
-  if (p.price) {
-    product.offers = {
-      '@type': 'Offer', url: SITE + url, price: String(Number(p.price)), priceCurrency: 'EUR', availability: 'https://schema.org/InStock',
-      seller: { '@type': 'Organization', name: NAME }
-    };
-    if (p.category === 'neuve') product.offers.itemCondition = 'https://schema.org/NewCondition';
-    if (p.category === 'occasion') product.offers.itemCondition = 'https://schema.org/UsedCondition';
+  var SEL = '.sec>h2,.card,.tile,.why>div,details,.band,.vd,.steps>div,.tem,.doc h2,.spec,.lst-t';
+  var io = null;
+  if (!reduce && 'IntersectionObserver' in window) {
+    io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('lf-in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
   }
-  if (p.year) product.productionDate = String(p.year);
-  const crumbs = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE + '/' },
-    { '@type': 'ListItem', position: 2, name: catName(catSlug), item: SITE + (catObj ? cUrl(catObj) : '/catalogue/') },
-    { '@type': 'ListItem', position: 3, name: title, item: SITE + url }] };
-  files.set(url + 'index.html', layout({ title: title + ' – ' + (p.category === 'neuve' ? 'Neuf' : p.category === 'occasion' ? 'Occasion' : catName(catSlug)) + ' | ' + NAME + ' ' + CFG.city, desc: metaDesc, path: url, ogImage: ph[0] && ph[0].full, body: h, jsonld: [product, crumbs], type: 'product' }));
-  urls.push({ loc: url, pr: '0.8' });
-}
 
-const CAT_INTRO = {
-  neuve: 'Mobil-homes neufs : maisons mobiles de plusieurs tailles, livrées et installées, avec financement échelonné possible.',
-  occasion: 'Mobil-homes d’occasion en bon état, à prix avantageux, livrés et installés sur votre terrain.'
-};
-function categoryPage(c) {
-  const list_ = prods.filter((p) => p.category === c.slug);
-  const name = c.name_fr || c.name_en, url = cUrl(c);
-  const intro = CAT_INTRO[c.slug] || (name + ' proposés par ' + NAME + ' à ' + CFG.city + ' : livraison en Europe, installation et financement échelonné possible.');
-  const desc = clip(name + ' à ' + CFG.city + ' (' + CFG.region + ') – ' + list_.length + (list_.length > 1 ? ' produits' : ' produit') + '. ' + intro, 158);
-  let h = '<section class="wrap" style="padding-top:28px"><p class="crumb"><a href="/">Accueil</a> › <a href="/catalogue/">Catalogue</a></p><h1 class="pt">' + esc(name) + '</h1><p class="sub">' + esc(intro) + '</p>';
-  h += '<div class="filters">' + cats.map((x) => '<a class="chip' + (x.slug === c.slug ? ' on' : '') + '" href="' + cUrl(x) + '">' + esc(x.name_fr || x.name_en) + '</a>').join('') + '</div>';
-  h += list_.length ? '<div class="grid">' + list_.map(card).join('') + '</div>' : '<div class="empty">Aucun produit dans cette catégorie pour le moment.</div>';
-  h += '<p style="margin-top:22px"><a class="btn cu" href="' + spaLink('c/' + encodeURIComponent(c.slug)) + '">Filtrer et trier sur le site</a></p></section>';
-  const itemList = { '@context': 'https://schema.org', '@type': 'CollectionPage', name, url: SITE + url, mainEntity: { '@type': 'ItemList', itemListElement: list_.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + pUrl(p), name: txt(p, 'title') })) } };
-  const first = list_.map((p) => photos(p)[0]).find(Boolean);
-  files.set(url + 'index.html', layout({ title: name + ' à ' + CFG.city + ' – ' + NAME, desc, path: url, ogImage: first && first.full, body: h, jsonld: [itemList] }));
-  urls.push({ loc: url, pr: '0.9' });
-}
+  function strip() {
+    var hero = app.querySelector('.hero');
+    if (!hero || app.querySelector('.lf-strip')) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+    var items = STRIP[l].map(function (s) { return '<span>' + s + '</span>'; }).join('');
+    var d = document.createElement('div');
+    d.className = 'lf-strip'; d.setAttribute('aria-label', l === 'en' ? 'Our commitments' : 'Nos engagements');
+    d.innerHTML = '<div class="lf-track">' + items + (reduce ? '' : items) + '</div>';
+    hero.parentNode.insertBefore(d, hero.nextSibling);
+  }
 
-function cataloguePage() {
-  let h = '<section class="wrap" style="padding-top:28px"><h1 class="pt">Catalogue – maisons mobiles et conteneurs</h1><p class="sub">Tous les produits ' + esc(NAME) + ', neufs et d’occasion, à ' + esc(CFG.city) + '.</p>';
-  cats.forEach((c) => {
-    const l = prods.filter((p) => p.category === c.slug);
-    if (!l.length) return;
-    h += '<h2 style="font-size:22px;margin:26px 0 14px"><a href="' + cUrl(c) + '">' + esc(c.name_fr || c.name_en) + '</a></h2><div class="grid">' + l.map(card).join('') + '</div>';
+  function quoteBtn() {
+    var b = app.querySelector('.hero .cta .btn.line');
+    if (!b || b.__q) return;
+    b.__q = 1;
+    b.textContent = document.documentElement.lang === 'en' ? 'Request a quote' : 'Demander un devis';
+    b.setAttribute('href', '#/contact');
+    b.removeAttribute('target'); b.removeAttribute('rel');
+  }
+  function panel() {
+    var cta = app.querySelector('.hero .cta');
+    if (!cta || cta.querySelector('.lf-lb')) return;
+    var en = document.documentElement.lang === 'en';
+    var a = document.createElement('div'); a.className = 'lf-lb'; a.textContent = en ? 'New and used' : 'Neufs et d’occasion';
+    var z = document.createElement('div'); z.className = 'lf-nt'; z.textContent = en ? 'Free quote, valid for 30 days' : 'Devis gratuit, valable 30 jours';
+    cta.insertBefore(a, cta.firstChild); cta.appendChild(z);
+  }
+
+  /* logo officiel : utilisé seulement si les fichiers existent, sinon le logo actuel reste.
+     Les marges vides sont rognées et le fond uni est retiré automatiquement. */
+  var LG = { s: null, f: null, c: null };
+  function dist(d, i, c) { return Math.abs(d[i] - c[0]) + Math.abs(d[i + 1] - c[1]) + Math.abs(d[i + 2] - c[2]); }
+  function prep(im, key) {
+    try {
+      var sc = Math.min(1, 1400 / Math.max(im.naturalWidth, im.naturalHeight));
+      var w = Math.round(im.naturalWidth * sc), h = Math.round(im.naturalHeight * sc);
+      var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      var cx = cv.getContext('2d'); cx.drawImage(im, 0, 0, w, h);
+      var d = cx.getImageData(0, 0, w, h).data;
+      var c = [d[0], d[1], d[2]], tr = d[3] < 20, x, y, i;
+      var x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        i = (y * w + x) * 4;
+        var solid = tr ? d[i + 3] > 20 : dist(d, i, c) > 45;
+        if (solid) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      }
+      if (x1 < 0) return null;
+      var ow = x1 - x0 + 1, oh = y1 - y0 + 1;
+      function variant(keyBg, light) {
+        var cp = new Uint8ClampedArray(d), j;
+        for (j = 0; j < cp.length; j += 4) {
+          if (keyBg && !tr) {
+            var k = dist(cp, j, c);
+            cp[j + 3] = k <= 40 ? 0 : k < 110 ? Math.round((k - 40) / 70 * 255) : 255;
+          }
+          if (light && cp[j + 3] > 0) {
+            var r = cp[j], g = cp[j + 1], bl = cp[j + 2];
+            if (!(r > 130 && r - bl > 35)) {
+              var lum = 0.3 * r + 0.59 * g + 0.11 * bl;
+              if (lum < 100) { cp[j] = 255; cp[j + 1] = 255; cp[j + 2] = 255; } else { cp[j] = 205; cp[j + 1] = 214; cp[j + 2] = 228; }
+            }
+          }
+        }
+        var t = document.createElement('canvas'); t.width = w; t.height = h;
+        t.getContext('2d').putImageData(new ImageData(cp, w, h), 0, 0);
+        var o = document.createElement('canvas'); o.width = ow; o.height = oh;
+        o.getContext('2d').drawImage(t, x0, y0, ow, oh, 0, 0, ow, oh);
+        return o.toDataURL('image/png');
+      }
+      return { url: variant(!!key, false), light: variant(true, true), transparent: tr || !!key, bg: tr ? null : 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')' };
+    } catch (e) { return null; }
+  }
+  function probe(base, k) {
+    var ex = ['png', 'jpg', 'jpeg', 'webp'], n = 0;
+    (function next() {
+      if (n >= ex.length) return;
+      var im = new Image(), src = base + '.' + ex[n];
+      im.onload = function () { var r = prep(im, k === 's'); LG[k] = r || { url: src, transparent: false, bg: null }; queue(); };
+      im.onerror = function () { n++; next(); };
+      im.src = src;
+    })();
+  }
+  probe('logo-symbole', 's'); probe('logo-complet', 'f'); probe('logo-clair', 'c');
+  function logos() {
+    if (LG.s) {
+      var lg = app.querySelector('.top .logo');
+      if (lg && !lg.classList.contains('lf-st')) {
+        var v = lg.querySelector('svg');
+        if (v) {
+          var im = document.createElement('img'); im.src = LG.s.url; im.alt = ''; im.className = 'lf-logo';
+          lg.replaceChild(im, v); lg.classList.add('lf-st');
+        }
+      }
+    }
+    var src = null, dark = false, bg = null;
+    if (LG.c && LG.c.transparent && LG.c.bg === null) { src = LG.c.url; dark = true; }
+    else if (LG.f && LG.f.light) { src = LG.f.light; dark = true; }
+    else if (LG.f || LG.c) { var q = LG.f || LG.c; src = q.url; bg = q.bg; }
+    if (src) {
+      var f = app.querySelector('.foot .wrap>div:first-child');
+      if (f && !f.querySelector('.lf-flogo')) {
+        var d = document.createElement('div'); d.className = 'lf-flogo' + (dark ? ' lf-dark' : '');
+        if (bg) d.style.background = bg;
+        d.innerHTML = '<img src="' + src + '" alt="AURIAM HOME">';
+        f.insertBefore(d, f.firstChild);
+      }
+    }
+  }
+
+  function gallery() {
+    var on = app.querySelector('.pd .th button.on');
+    if (!on || on.__g) return;
+    on.__g = 1;
+    var c = on.parentNode;
+    c.scrollLeft = on.offsetLeft - (c.clientWidth - on.offsetWidth) / 2;
+  }
+
+  /* le bouton WhatsApp flottant se met en retrait tant que l'accueil est à l'écran */
+  var heroEl = null, heroIO = null, heroVis = false;
+  function heroWatch() {
+    var h = app.querySelector('.hero');
+    if (h === heroEl) return;
+    heroEl = h;
+    if (heroIO) heroIO.disconnect();
+    if (!h) { document.body.classList.remove('lf-hero'); return; }
+    if (!('IntersectionObserver' in window)) return;
+    heroIO = new IntersectionObserver(function (es) {
+      heroVis = es[0].isIntersecting;
+      document.body.classList.toggle('lf-hero', es[0].intersectionRatio > 0.3);
+    }, { threshold: [0, 0.3, 0.6, 1] });
+    heroIO.observe(h);
+  }
+
+
+  /* page Contact : « Nous trouver » (plan, itinéraire) + « Être rappelé » */
+  function findus() {
+    if (location.hash.replace(/\/$/, '') !== '#/contact') return;
+    var doc = app.querySelector('section.doc');
+    if (!doc || doc.querySelector('.lf-find')) return;
+    var en = document.documentElement.lang === 'en';
+    var q = encodeURIComponent('AURIAM HOME, Route de Lyon, 24000 Périgueux');
+    var w = doc.querySelector('a[href^="https://wa.me/"]') || app.querySelector('a[href^="https://wa.me/"]');
+    var mail = app.querySelector('.foot a[href^="mailto:"]') || doc.querySelector('a[href^="mailto:"]');
+    var T = en ? {
+      h: 'Find us', a: 'Showroom: Route de Lyon, 24000 Périgueux, France. Visits are welcome by appointment.', hrs: ['Opening hours', 'Monday to Friday: 9 am – 6 pm', 'Saturday: 9 am – 1 pm', 'Sunday: closed'], go: 'Get directions',
+      rh: 'Request a call back', rp: 'Leave your number: we call you back.', n: 'Your name', t: 'Your phone number', s: 'When?',
+      o: ['As soon as possible', 'Morning', 'Afternoon', 'Evening'], b: 'Call me back', ok: 'Your message is ready: send it to us.', sent: 'Thank you! We will call you back during opening hours.',
+      msg: function (n, t, s) { return 'Hello, please call me back.\nName: ' + n + '\nPhone: ' + t + '\nWhen: ' + s; }, none: 'Please enter your name and phone number.'
+    } : {
+      h: 'Nous trouver', a: 'Parc d’exposition : Route de Lyon, 24000 Périgueux, France. Visites bienvenues sur rendez-vous.', hrs: ['Horaires d’ouverture', 'Du lundi au vendredi : 9 h – 18 h', 'Samedi : 9 h – 13 h', 'Dimanche : fermé'], go: 'Obtenir l’itinéraire',
+      rh: 'Être rappelé', rp: 'Laissez votre numéro : nous vous rappelons.', n: 'Votre nom', t: 'Votre numéro de téléphone', s: 'Quand ?',
+      o: ['Dès que possible', 'Le matin', 'L’après-midi', 'Le soir'], b: 'Être rappelé', ok: 'Votre message est prêt : envoyez-le-nous.', sent: 'Merci ! Nous vous rappelons pendant nos horaires d’ouverture.',
+      msg: function (n, t, s) { return 'Bonjour, merci de me rappeler.\nNom : ' + n + '\nTéléphone : ' + t + '\nQuand : ' + s; }, none: 'Indiquez votre nom et votre numéro.'
+    };
+    var d = document.createElement('div'); d.className = 'lf-find';
+    d.innerHTML = '<h2>' + T.h + '</h2><p>' + T.a + '</p><p class="lf-hrs"><b>' + T.hrs[0] + '</b><br>' + T.hrs.slice(1).join('<br>') + '</p>' +
+      '<div class="lf-map"><iframe title="' + T.h + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=' + q + '&output=embed"></iframe></div>' +
+      '<p><a class="btn cu" style="width:auto" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + q + '">' + T.go + '</a></p>' +
+      '<form class="lf-cb" novalidate><h2>' + T.rh + '</h2><p>' + T.rp + '</p>' +
+      '<input name="n" type="text" autocomplete="name" placeholder="' + T.n + '" aria-label="' + T.n + '">' +
+      '<input name="t" type="tel" autocomplete="tel" inputmode="tel" placeholder="' + T.t + '" aria-label="' + T.t + '">' +
+      '<select name="s" aria-label="' + T.s + '">' + T.o.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select>' +
+      '<button class="btn cu" type="submit">' + T.b + '</button><p class="lf-cbm" role="status"></p></form>';
+    doc.appendChild(d);
+    var f = d.querySelector('form'), m = d.querySelector('.lf-cbm');
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var n = f.n.value.trim(), t = f.t.value.trim();
+      if (!n || t.replace(/\D/g, '').length < 6) { m.textContent = T.none; return; }
+      var txt = T.msg(n, t, f.s.value), btn = f.querySelector('button'), C = window.AURIAM_CONFIG;
+      function fallback() {
+        if (w) { m.textContent = T.ok; window.open(w.getAttribute('href').split('?')[0] + '?text=' + encodeURIComponent(txt), '_blank'); }
+        else if (mail) { location.href = mail.getAttribute('href').split('?')[0] + '?subject=' + encodeURIComponent(T.rh) + '&body=' + encodeURIComponent(txt); }
+      }
+      if (!(window.supabase && C)) return fallback();
+      btn.disabled = true;
+      var c = window.supabase.createClient(C.url, C.key);
+      c.from('callbacks').insert({ name: n.slice(0, 80), phone: t.slice(0, 30), slot: f.s.value, lang: en ? 'en' : 'fr' }).then(function (r) {
+        btn.disabled = false;
+        if (r.error) return fallback();
+        f.reset(); m.textContent = T.sent;
+      }, function () { btn.disabled = false; fallback(); });
+    });
+  }
+
+
+  /* statut des produits (Disponible / Réservé / Vendu) + bandeau livraison */
+  var STA = null, STB = 0;
+  function loadSta() {
+    if (STB) return; STB = 1;
+    var C = window.AURIAM_CONFIG; if (!(window.supabase && C)) return;
+    try {
+      window.supabase.createClient(C.url, C.key).from('products').select('id,status').then(function (r) {
+        if (r && !r.error && r.data) { STA = {}; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; }); status(); }
+      }, function () {});
+    } catch (e) {}
+  }
+  function status() {
+    loadSta(); if (!STA) return;
+    var en = document.documentElement.lang === 'en';
+    var N = en ? { available: 'Available', reserved: 'Reserved', sold: 'Sold' } : { available: 'Disponible', reserved: 'Réservé', sold: 'Vendu' };
+    function pill(s) { var e = document.createElement('span'); e.className = 'lf-sp lf-' + s; e.textContent = N[s] || N.available; return e; }
+    Array.prototype.forEach.call(app.querySelectorAll('a.card[href^="#/p/"]'), function (a) {
+      var s = STA[a.getAttribute('href').slice(4)] || 'available', ph = a.querySelector('.ph'); if (!ph) return;
+      var o = ph.querySelector('.lf-sp');
+      if (o && o.className === 'lf-sp lf-' + s && o.textContent === N[s]) return;
+      if (o) o.remove();
+      ph.appendChild(pill(s)); a.classList.toggle('lf-sold', s === 'sold');
+    });
+    var i = app.querySelector('.pd .i');
+    if (i) {
+      var id = location.hash.split('/')[2], s2 = STA[id] || 'available', ex = i.querySelector('.lf-sp');
+      if (!ex || ex.textContent !== N[s2]) {
+        if (ex) ex.remove();
+        var h1 = i.querySelector('h1'); if (h1) i.insertBefore(pill(s2), h1);
+      }
+      var bn = i.querySelector('.lf-dl');
+      if (s2 === 'sold') { if (bn) bn.remove(); }
+      else if (!bn) {
+        var note = i.querySelector('.price ~ .note'); if (!note) return;
+        bn = document.createElement('div'); bn.className = 'lf-dl';
+        bn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h13v10H1zM14 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>' +
+          (en ? '<b>Delivery across Europe.</b> 7 to 10 days (dedicated) or 2 to 3 weeks (grouped). Outside the EU on quote.' : '<b>Livraison partout en Europe.</b> 7 à 10 jours (dédiée) ou 2 à 3 semaines (groupée). Hors UE sur devis.') + '</span>';
+        note.parentNode.insertBefore(bn, note.nextSibling);
+      }
+    }
+  }
+
+  /* bouton e-mail flottant, au-dessus de WhatsApp */
+  function mailBtn() {
+    var en = document.documentElement.lang === 'en';
+    var a = app.querySelector('.lf-mail');
+    if (!a) {
+      a = document.createElement('a'); a.className = 'lf-mail';
+      a.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+      app.appendChild(a);
+    }
+    var m = app.querySelector('.foot a[href^="mailto:"]');
+    a.setAttribute('href', m ? m.getAttribute('href') : '#/contact');
+    a.setAttribute('aria-label', en ? 'Email us' : 'Nous écrire par e-mail');
+    a.setAttribute('title', en ? 'Email us' : 'Nous écrire par e-mail');
+  }
+
+  /* menu : langue en haut, rubriques regroupées, bouton devis en bas */
+  function menu() {
+    var dr = app.querySelector('.ov .dr');
+    if (!dr || dr.__lm) return;
+    dr.__lm = 1;
+    var en = document.documentElement.lang === 'en';
+    var head = dr.firstElementChild, lang = dr.querySelector('.lang'), lab = lang && lang.previousElementSibling;
+    if (!head || !lang || !lab) return;
+    dr.classList.add('lf-dr');
+    var row = document.createElement('div'); row.className = 'lf-langrow';
+    row.appendChild(lab); row.appendChild(lang);
+    dr.insertBefore(row, head.nextSibling);
+    function title(txt, before) { var t = document.createElement('div'); t.className = 'lf-mt'; t.textContent = txt; dr.insertBefore(t, before); }
+    var firstProd = dr.querySelector('a.l[href^="#/c/"],a.l[href="#/all"]'), firstInfo = dr.querySelector('a.l[href="#/livraison"]');
+    if (firstProd) title(en ? 'Our products' : 'Nos produits', firstProd);
+    if (firstInfo) title(en ? 'Information' : 'Informations', firstInfo);
+    var cta = document.createElement('a'); cta.className = 'lf-mcta'; cta.setAttribute('href', '#/contact'); cta.setAttribute('data-act', 'close');
+    cta.textContent = en ? 'Request a quote' : 'Demander un devis';
+    dr.appendChild(cta);
+    Array.prototype.forEach.call(dr.querySelectorAll('a.l,.lf-mt'), function (el, i) { el.style.setProperty('--i', i); });
+  }
+
+  /* bande 3D : maison mobile, conteneur maritime, conteneur bureau (un tour chacun) */
+  var M3 = {
+    fr: ['Maison mobile', 'Conteneur maritime', 'Conteneur bureau'],
+    en: ['Mobile home', 'Shipping container', 'Office container']
+  };
+  var b3 = { i: 0, t: 0, drag: 0, dragging: false, vis: false, built: -1, last: 0, el: null };
+  function sh(hex, k) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    function c(v) { return Math.max(0, Math.min(255, Math.round(v * k))); }
+    return 'rgb(' + c(r) + ',' + c(g) + ',' + c(b) + ')';
+  }
+  function fc(w, h, tf, css, inner) {
+    return '<div class="f" style="width:' + w + 'px;height:' + h + 'px;margin:' + (-h / 2) + 'px 0 0 ' + (-w / 2) + 'px;transform:' + tf + ';' + (css || '') + '">' + (inner || '') + '</div>';
+  }
+  function box(w, h, d, pos, o) {
+    o = o || {};
+    function g(k) { return o[k] || {}; }
+    function f(k, W, H, tf) { var x = g(k); return fc(W, H, tf, x.css || '', x.inner || ''); }
+    return '<div class="g" style="transform:' + pos + '">' +
+      f('front', w, h, 'translateZ(' + d / 2 + 'px)') + f('back', w, h, 'rotateY(180deg) translateZ(' + d / 2 + 'px)') +
+      f('right', d, h, 'rotateY(90deg) translateZ(' + w / 2 + 'px)') + f('left', d, h, 'rotateY(-90deg) translateZ(' + w / 2 + 'px)') +
+      f('top', w, d, 'rotateX(90deg) translateZ(' + h / 2 + 'px)') + f('bottom', w, d, 'rotateX(-90deg) translateZ(' + h / 2 + 'px)') + '</div>';
+  }
+  function win(x, y, w, h) {
+    return '<i class="lw" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px"></i>';
+  }
+  function mobileHome() {
+    var L = 300, W = 112, H = 98, P = 30, B = '#B98F66', Y = -(8 + H / 2);
+    var cl = function (k) { return 'background:repeating-linear-gradient(180deg,rgba(0,0,0,.16) 0 1.5px,transparent 1.5px 9px),' + sh(B, k) + ';'; };
+    var skirt = '<i style="position:absolute;left:0;right:0;bottom:0;height:9px;background:rgba(40,30,20,.45)"></i>';
+    var door = '<i class="ld" style="left:36px;top:24px;width:34px;height:74px"></i>';
+    var front = { css: cl(1), inner: door + win(100, 22, 54, 46) + win(180, 22, 54, 46) + win(252, 22, 34, 46) + skirt };
+    var back = { css: cl(.9), inner: win(30, 22, 54, 46) + win(122, 22, 54, 46) + win(214, 22, 54, 46) + skirt };
+    var end1 = { css: cl(.8), inner: win(36, 22, 40, 46) + skirt }, end2 = { css: cl(.78), inner: win(36, 22, 40, 46) + skirt };
+    var roofC = '#58626E', ph = Math.sqrt(W * W / 4 + P * P), a = Math.atan(P / (W / 2)) * 180 / Math.PI, ry = -(8 + H + P / 2);
+    var seam = function (k) { return 'background:repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0 2px,transparent 2px 16px),' + sh(roofC, k) + ';'; };
+    var tri = function (k) { return 'background:' + sh(B, k) + ';clip-path:polygon(50% 0,100% 100%,0 100%);'; };
+    return box(L - 24, 8, W - 28, 'translate3d(0,-4px,0)', { all: 1, front: { css: 'background:#2b3038' }, back: { css: 'background:#2b3038' }, right: { css: 'background:#22262c' }, left: { css: 'background:#22262c' }, top: { css: 'background:#22262c' }, bottom: { css: 'background:#111' } }) +
+      box(L, H, W, 'translate3d(0,' + Y + 'px,0)', { front: front, back: back, right: end1, left: end2, top: { css: 'background:' + sh(B, .7) }, bottom: { css: 'background:#222' } }) +
+      '<div class="g" style="transform:translate3d(0,' + ry + 'px,' + W / 4 + 'px) rotateX(' + a + 'deg)">' + fc(L + 10, ph, '', seam(1)) + '</div>' +
+      '<div class="g" style="transform:translate3d(0,' + ry + 'px,' + -W / 4 + 'px) rotateY(180deg) rotateX(' + a + 'deg)">' + fc(L + 10, ph, '', seam(.78)) + '</div>' +
+      '<div class="g" style="transform:translate3d(' + (L / 2) + 'px,' + ry + 'px,0) rotateY(90deg)">' + fc(W, P, '', tri(.8)) + '</div>' +
+      '<div class="g" style="transform:translate3d(' + (-L / 2) + 'px,' + ry + 'px,0) rotateY(-90deg)">' + fc(W, P, '', tri(.78)) + '</div>' +
+      box(44, 8, 24, 'translate3d(' + (-L / 2 + 53) + 'px,-4px,' + (W / 2 + 12) + 'px)', { all: 1, front: { css: 'background:#8a8f96' }, back: { css: 'background:#6e737a' }, right: { css: 'background:#7a7f86' }, left: { css: 'background:#7a7f86' }, top: { css: 'background:#a5aab1' }, bottom: { css: 'background:#444' } });
+  }
+  function cont(office) {
+    var L = 300, W = 120, H = 128, C = office ? '#E4E8EC' : '#A8452F';
+    var rib = function (k) {
+      return office
+        ? 'background:linear-gradient(180deg,transparent calc(100% - 14px),#1d3556 calc(100% - 14px)),repeating-linear-gradient(90deg,rgba(0,0,0,.07) 0 1px,transparent 1px 50px),' + sh(C, k) + ';'
+        : 'background:repeating-linear-gradient(90deg,rgba(0,0,0,.26) 0 2px,rgba(255,255,255,.07) 2px 4px,transparent 4px 10px),' + sh(C, k) + ';box-shadow:inset 0 0 0 5px rgba(0,0,0,.28);';
+    };
+    var logo = '<b class="lg">AURIAM HOME</b>';
+    var front, back, rt, lf;
+    if (office) {
+      front = { css: rib(1), inner: win(34, 28, 78, 52) + win(134, 28, 78, 52) + '<i class="ld" style="left:238px;top:30px;width:44px;height:94px"></i>' };
+      back = { css: rib(.92), inner: win(34, 28, 78, 52) + win(134, 28, 78, 52) + win(232, 28, 50, 52) };
+      rt = { css: rib(.8), inner: win(30, 34, 60, 50) }; lf = { css: rib(.78), inner: '' };
+    } else {
+      front = { css: rib(1), inner: logo }; back = { css: rib(.9), inner: logo };
+      var dr = function (x) { return '<i class="dr" style="left:' + x + 'px"><u></u></i>'; };
+      rt = { css: rib(.8).replace(/background:[^;]+;/, 'background:' + sh(C, .8) + ';'), inner: dr(5) + dr(63) };
+      lf = { css: 'background:' + sh(C, .78) + ';box-shadow:inset 0 0 0 5px rgba(0,0,0,.28);' };
+    }
+    var topC = office ? sh('#C9CFD6', .95) : sh(C, .85);
+    var s = box(L, H, W, 'translate3d(0,' + (-H / 2) + 'px,0)', { front: front, back: back, right: rt, left: lf, top: { css: (office ? 'background:' + topC : 'background:repeating-linear-gradient(90deg,rgba(0,0,0,.2) 0 2px,transparent 2px 10px),' + topC) + ';' }, bottom: { css: 'background:#222' } });
+    if (office) {
+      s += box(74, 4, 30, 'translate3d(' + (L / 2 - 65) + 'px,' + (-H + 28) + 'px,' + (W / 2 + 15) + 'px)', { front: { css: 'background:#1d3556' }, back: { css: 'background:#1d3556' }, right: { css: 'background:#14263F' }, left: { css: 'background:#14263F' }, top: { css: 'background:#2b4a75' }, bottom: { css: 'background:#0d1a2c' } });
+      s += box(50, 8, 24, 'translate3d(' + (L / 2 - 65) + 'px,-4px,' + (W / 2 + 12) + 'px)', { front: { css: 'background:#8a8f96' }, back: { css: 'background:#6e737a' }, right: { css: 'background:#7a7f86' }, left: { css: 'background:#7a7f86' }, top: { css: 'background:#a5aab1' }, bottom: { css: 'background:#444' } });
+      s += box(14, 30, 36, 'translate3d(' + (-L / 2 - 7) + 'px,' + (-H + 50) + 'px,0)', { front: { css: 'background:#cfd5dc' }, back: { css: 'background:#b9c0c8' }, right: { css: 'background:#aab1ba' }, left: { css: 'background:#9aa2ac;background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.25) 0 2px,transparent 2px 5px)' }, top: { css: 'background:#dfe4ea' }, bottom: { css: 'background:#555' } });
+    }
+    return s;
+  }
+  function build3d(st, i) {
+    var sc = st.querySelector('.ro');
+    sc.innerHTML = [mobileHome, function () { return cont(false); }, function () { return cont(true); }][i]();
+    b3.built = i;
+  }
+  function band3d() {
+    var hero = app.querySelector('.hero');
+    if (!hero || app.querySelector('.lf-3d')) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+    var s = document.createElement('section');
+    s.className = 'lf-3d';
+    s.setAttribute('aria-label', l === 'en' ? 'Our models in 3D' : 'Nos modèles en 3D');
+    s.innerHTML = '<div class="b3w">' +
+      '<div class="st"><div class="fl"></div><div class="sc"><div class="sd"></div><div class="ro"></div></div></div>' +
+      '<p class="b3n" aria-live="polite"></p><div class="b3d">' + M3[l].map(function (n, k) { return '<button type="button" data-k="' + k + '" aria-label="' + n + '"></button>'; }).join('') + '</div>' +
+      '<a class="b3a" href="#/all">' + (l === 'en' ? 'See all products' : 'Voir tous les produits') + ' →</a></div>';
+    var st = app.querySelector('.lf-strip');
+    (st || hero).parentNode.insertBefore(s, (st || hero).nextSibling);
+    b3.built = -1;
+    b3io && b3io.observe(s);
+  }
+  var b3io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { b3.vis = es[0].isIntersecting; }) : null;
+  if (!b3io) b3.vis = true;
+  var CYC = 8600, INT = 700, OUT = 600;
+  function frame3d(now) {
+    requestAnimationFrame(frame3d);
+    var dt = Math.min(80, now - (b3.last || now)); b3.last = now;
+    var s = app.querySelector('.lf-3d'); if (!s) return;
+    var st = s.querySelector('.st'), ro = s.querySelector('.ro'), sc = s.querySelector('.sc');
+    var w = st.clientWidth; sc.style.setProperty('--k', Math.min(1.15, w / 470).toFixed(3));
+    if (!b3.vis && b3.built >= 0) return;
+    if (!reduce && !b3.dragging) b3.t += dt;
+    if (b3.t >= CYC) { b3.t = 0; b3.i = (b3.i + 1) % 3; }
+    if (b3.built !== b3.i) { build3d(st, b3.i); s.querySelector('.b3n').textContent = M3[document.documentElement.lang === 'en' ? 'en' : 'fr'][b3.i]; Array.prototype.forEach.call(s.querySelectorAll('.b3d button'), function (b, k) { b.classList.toggle('on', k === b3.i); }); }
+    var t = reduce ? 0.35 * CYC : b3.t, ang, sca = 1, op = 1;
+    ang = 25 + 360 * Math.min(1, t / (CYC - OUT)) * 1 + b3.drag;
+    var e = Math.min(1, t / INT); sca = 0.78 + 0.22 * (1 - Math.pow(1 - e, 3)); op = e;
+    if (t > CYC - OUT) { var o = (t - (CYC - OUT)) / OUT; op = 1 - o; sca = 1 - 0.1 * o; }
+    ro.style.transform = 'rotateY(' + ang.toFixed(2) + 'deg) scale(' + sca.toFixed(3) + ')';
+    ro.style.opacity = op.toFixed(3);
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.lf-3d .b3d button'); if (!b) return;
+    b3.i = +b.dataset.k; b3.t = 0; b3.drag = 0;
   });
-  h += '</section>';
-  files.set('/catalogue/index.html', layout({ title: 'Catalogue : maisons mobiles, maisons conteneurs, conteneurs – ' + NAME, desc: clip('Tous les produits ' + NAME + ' à ' + CFG.city + ' : mobil-homes neufs et d’occasion, maisons conteneurs, conteneurs maritimes. Livraison en Europe.', 158), path: '/catalogue/', body: h }));
-  urls.push({ loc: '/catalogue/', pr: '0.9' });
-}
+  (function () {
+    var x0 = null;
+    document.addEventListener('pointerdown', function (e) { var s = e.target.closest && e.target.closest('.lf-3d .st'); if (!s) return; x0 = e.clientX; b3.dragging = true; });
+    addEventListener('pointermove', function (e) { if (x0 === null) return; b3.drag += (e.clientX - x0) * 0.7; x0 = e.clientX; });
+    addEventListener('pointerup', function () { x0 = null; b3.dragging = false; });
+    addEventListener('pointercancel', function () { x0 = null; b3.dragging = false; });
+  })();
+  requestAnimationFrame(frame3d);
 
-cats.forEach(categoryPage);
-prods.forEach(productPage);
-cataloguePage();
+  /* frise « de l'achat à la livraison » */
+  var TL = {
+    fr: ['De l’achat à la livraison', [['Choix du modèle', 'Neuf ou d’occasion, maison mobile ou conteneur.'], ['Devis gratuit', 'Valable 30 jours.'], ['Financement', 'Paiement échelonné possible.'], ['Livraison', 'Partout en Europe.'], ['Installation', 'Déchargement et installation offerts.']]],
+    en: ['From purchase to delivery', [['Choose your model', 'New or used, mobile home or container.'], ['Free quote', 'Valid for 30 days.'], ['Financing', 'Instalment payment available.'], ['Delivery', 'Across Europe.'], ['Installation', 'Free unloading and installation.']]]
+  };
+  var TRUCK = '<svg viewBox="0 0 48 28" width="40" height="23" aria-hidden="true"><rect x="1" y="4" width="28" height="15" rx="2" fill="#C98A3D"/><path d="M30 8h9l7 6v5H30z" fill="#14263F"/><path d="M33 10h5l4 4h-9z" fill="#BFD8EA"/><circle cx="10" cy="21" r="4" fill="#14263F" stroke="#fff" stroke-width="1.5"/><circle cx="38" cy="21" r="4" fill="#14263F" stroke="#fff" stroke-width="1.5"/></svg>';
+  function timeline() {
+    var why = app.querySelector('.why');
+    if (!why || app.querySelector('.lf-tl')) return;
+    var sec = why.closest('section'); if (!sec) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr', d = TL[l];
+    var s = document.createElement('section');
+    s.className = 'wrap sec lf-tl';
+    s.innerHTML = '<h2>' + d[0] + '</h2><ol class="tl"><li class="tr" aria-hidden="true"><span class="tk">' + TRUCK + '</span></li>' +
+      d[1].map(function (x, i) { return '<li style="--i:' + i + '"><b>' + (i + 1) + '</b><div><strong>' + x[0] + '</strong><span>' + x[1] + '</span></div></li>'; }).join('') + '</ol>';
+    sec.parentNode.insertBefore(s, sec);
+  }
+  /* cartes qui s'inclinent */
+  (function () {
+    var cur = null, rst = 0;
+    function tilt(e, el) {
+      var r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.classList.add('lf-tilt');
+      el.style.setProperty('--ry', ((x - .5) * 9).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', ((.5 - y) * 9).toFixed(2) + 'deg');
+      el.style.setProperty('--gx', (x * 100).toFixed(0) + '%'); el.style.setProperty('--gy', (y * 100).toFixed(0) + '%');
+    }
+    function off(el) { if (!el) return; el.classList.remove('lf-tilt'); el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); }
+    if (reduce) return;
+    document.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var el = e.target.closest && e.target.closest('.card,.tile'); if (el && el.closest('.lf-ring')) el = null;
+      if (el !== cur) { off(cur); cur = el; }
+      if (el) tilt(e, el);
+    }, { passive: true });
+    document.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      var el = e.target.closest && e.target.closest('.card,.tile'); if (!el) return;
+      clearTimeout(rst); cur = el; tilt(e, el); rst = setTimeout(function () { off(el); }, 380);
+    }, { passive: true });
+    document.addEventListener('pointerleave', function () { off(cur); cur = null; });
+  })();
 
-/* ---------- écriture ---------- */
-for (const dir of ['produits', 'categories', 'catalogue']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
-for (const [p, content] of files) {
-  const f = path.join(ROOT, p);
-  fs.mkdirSync(path.dirname(f), { recursive: true });
-  fs.writeFileSync(f, content);
-}
-fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-  urls.map((u) => '  <url><loc>' + esc(SITE + u.loc) + '</loc><priority>' + u.pr + '</priority></url>').join('\n') + '\n</urlset>\n');
-fs.writeFileSync(path.join(ROOT, 'robots.txt'), 'User-agent: *\nDisallow: /admin.html\n\nSitemap: ' + SITE + '/sitemap.xml\n');
-console.log('OK : ' + prods.length + ' produits, ' + cats.length + ' catégories, ' + urls.length + ' adresses.');
+  var tlio = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var t = e.target, tl = t.querySelector('.tl');
+      if (tl) { t.style.setProperty('--th', (tl.offsetHeight - 36) + 'px'); t.style.setProperty('--tw', (tl.offsetWidth - 44) + 'px'); }
+      t.classList.add('lf-go'); tlio.unobserve(t);
+    });
+  }, { threshold: 0.35 }) : null;
+  function tlWatch() {
+    var t = app.querySelector('.lf-tl'); if (!t || t.__w) return; t.__w = 1;
+    if (tlio) tlio.observe(t); else t.classList.add('lf-go');
+  }
+  /* chiffres qui défilent (uniquement ceux déjà annoncés sur le site) */
+  var CT = {
+    fr: [[36, 0, 'mois', 'Financement échelonné jusqu’à'], [30, 0, 'jours', 'Validité de votre devis gratuit'], [7, 10, 'jours', 'En livraison dédiée'], [2, 3, 'semaines', 'En livraison groupée, tarif avantageux']],
+    en: [[36, 0, 'months', 'Instalment financing up to'], [30, 0, 'days', 'Validity of your free quote'], [7, 10, 'days', 'With dedicated delivery'], [2, 3, 'weeks', 'With grouped delivery, better rate']]
+  };
+  function counters() {
+    var tl = app.querySelector('.lf-tl');
+    if (!tl || app.querySelector('.lf-ct')) return;
+    var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+    var s = document.createElement('section');
+    s.className = 'lf-ct';
+    s.innerHTML = '<div class="ctw">' + CT[l].map(function (c) {
+      return '<div><p class="cl">' + c[3] + '</p><p class="cn"><b data-a="' + c[0] + '" data-b="' + c[1] + '">' + (c[1] ? c[0] + '–' + c[1] : c[0]) + '</b> <span>' + c[2] + '</span></p></div>';
+    }).join('') + '</div>';
+    tl.parentNode.insertBefore(s, tl.nextSibling);
+    if (reduce || !('IntersectionObserver' in window)) return;
+    Array.prototype.forEach.call(s.querySelectorAll('b'), function (b) { b.textContent = b.dataset.b > 0 ? '0–0' : '0'; });
+    var io2 = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      io2.disconnect();
+      var t0 = performance.now(), D = 1700;
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+        Array.prototype.forEach.call(s.querySelectorAll('b'), function (b) {
+          var a = +b.dataset.a, c = +b.dataset.b;
+          b.textContent = c ? Math.round(a * e) + '–' + Math.round(c * e) : Math.round(a * e);
+        });
+        if (p < 1) requestAnimationFrame(step);
+      })(t0);
+    }, { threshold: 0.5 });
+    io2.observe(s);
+  }
+
+  /* catégories en carrousel 3D que l'on fait tourner du doigt */
+  var RG = { el: null, tiles: [], pos: 0, vel: 0, drag: false, x0: 0, p0: 0, moved: 0, idle: 0, vis: false, snap: null, hint: null };
+  var rgio = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { RG.vis = es[0].isIntersecting; }, { threshold: 0.05 }) : null;
+  function catRing() {
+    var el = app.querySelector('.tiles');
+    if (!el || el.__ring) return;
+    var tiles = Array.prototype.slice.call(el.querySelectorAll('.tile'));
+    if (tiles.length < 2) return;
+    el.__ring = 1; el.classList.add('lf-ring');
+    var g = document.createElement('div'); g.className = 'rg';
+    tiles.forEach(function (t) { g.appendChild(t); });
+    el.appendChild(g);
+    var h = document.createElement('p'); h.className = 'rh';
+    h.textContent = document.documentElement.lang === 'en' ? 'Drag to rotate' : 'Glissez pour faire tourner';
+    el.parentNode.insertBefore(h, el.nextSibling);
+    var en = document.documentElement.lang === 'en', ui = document.createElement('div');
+    ui.className = 'c3ui';
+    ui.innerHTML = '<button type="button" class="c3b" data-d="-1" aria-label="' + (en ? 'Previous' : 'Précédent') + '">‹</button><div class="c3d">' + tiles.map(function () { return '<i></i>'; }).join('') + '</div><button type="button" class="c3b" data-d="1" aria-label="' + (en ? 'Next' : 'Suivant') + '">›</button>';
+    el.parentNode.insertBefore(ui, h);
+    ui.addEventListener('click', function (e) {
+      var b = e.target.closest('.c3b'); if (!b) return;
+      RG.vel = 0; RG.snap = Math.round(RG.pos) + (+b.dataset.d); RG.idle = -3; if (RG.hint) RG.hint.style.opacity = '0';
+    });
+    RG.ui = ui;
+    RG.el = el; RG.tiles = tiles; RG.hint = h; RG.pos = 0; RG.vel = 0; RG.snap = null; RG.idle = 0;
+    if (rgio) rgio.observe(el); else RG.vis = true;
+    ringDraw();
+  }
+  function ringDraw() {
+    var n0 = RG.tiles.length, cu = ((Math.round(RG.pos) % n0) + n0) % n0;
+    if (RG.ui) Array.prototype.forEach.call(RG.ui.querySelectorAll('.c3d i'), function (d, i) { d.className = i === cu ? 'on' : ''; });
+    var n = RG.tiles.length, fe = Math.min(n / 2, 2.2), w = RG.el.clientWidth, R = Math.max(300, Math.min(520, w * 0.62));
+    RG.tiles.forEach(function (t, i) {
+      var d = ((i - RG.pos) % n + n) % n; if (d > n / 2) d -= n;
+      var a = Math.abs(d), op = Math.max(0, Math.min(1, (fe - a) / (fe - 1)));
+      t.style.transform = 'translateX(' + (d * (w < 520 ? 150 : 250)).toFixed(1) + 'px) translateZ(' + (-a * 90).toFixed(1) + 'px) rotateY(' + (-d * 28).toFixed(2) + 'deg) scale(' + (1 - Math.min(a, 1.5) * 0.06).toFixed(3) + ')';
+      t.style.opacity = op.toFixed(3);
+      t.style.zIndex = String(Math.round(100 - a * 10));
+      t.style.filter = a > 0.05 ? 'brightness(' + (1 - Math.min(a, 1) * 0.22).toFixed(2) + ')' : 'none';
+      t.style.pointerEvents = op < 0.2 ? 'none' : '';
+    });
+  }
+  function ringLoop(now) {
+    requestAnimationFrame(ringLoop);
+    if (!RG.el || !RG.el.isConnected) { RG.el = null; return; }
+    if (!RG.vis) return;
+    var dt = Math.min(50, now - (RG.last || now)) / 1000; RG.last = now;
+    var n = RG.tiles.length;
+    if (!RG.drag) {
+      if (RG.snap !== null) {
+        RG.pos += (RG.snap - RG.pos) * Math.min(1, dt * 9);
+        if (Math.abs(RG.snap - RG.pos) < 0.002) { RG.pos = RG.snap; RG.snap = null; }
+      } else if (Math.abs(RG.vel) > 0.05) {
+        RG.pos += RG.vel * dt; RG.vel *= Math.pow(0.04, dt);
+        if (Math.abs(RG.vel) <= 0.35) RG.snap = Math.round(RG.pos);
+      } else if (!reduce) {
+        RG.idle += dt;
+        if (RG.idle > 3.6) { RG.idle = 0; RG.snap = Math.round(RG.pos) + 1; }
+      }
+    }
+    RG.pos = ((RG.pos % n) + n) % n === RG.pos ? RG.pos : RG.pos;
+    ringDraw();
+  }
+  (function () {
+    function down(e) {
+      var el = e.target.closest && e.target.closest('.tiles.lf-ring'); if (!el || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      RG.drag = true; RG.x0 = e.clientX; RG.p0 = RG.pos; RG.moved = 0; RG.vel = 0; RG.snap = null; RG.lx = e.clientX; RG.lt = performance.now(); RG.idle = 0;
+      el.classList.add('lf-grab');
+    }
+    function move(e) {
+      if (!RG.drag) return;
+      var step = RG.el.clientWidth < 520 ? 110 : 170, dx = e.clientX - RG.x0;
+      RG.moved = Math.max(RG.moved, Math.abs(dx));
+      var np = RG.p0 - dx / step, now = performance.now(), dtm = Math.max(8, now - RG.lt) / 1000;
+      RG.vel = RG.vel * 0.6 + ((np - RG.pos) / dtm) * 0.4; RG.pos = np; RG.lt = now;
+      if (RG.hint) RG.hint.style.opacity = '0';
+    }
+    function up() {
+      if (!RG.drag) return; RG.drag = false;
+      if (RG.el) RG.el.classList.remove('lf-grab');
+      if (RG.moved > 8) { RG.snap = null; if (Math.abs(RG.vel) < 0.6) RG.snap = Math.round(RG.pos); }
+      RG.idle = -3;
+    }
+    document.addEventListener('pointerdown', down, { passive: true });
+    addEventListener('pointermove', move, { passive: true });
+    addEventListener('pointerup', up); addEventListener('pointercancel', up);
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('.tiles.lf-ring .tile'); if (!t) return;
+      if (RG.moved > 8) { e.preventDefault(); e.stopPropagation(); RG.moved = 0; return; }
+      var i = RG.tiles.indexOf(t), n = RG.tiles.length, d = ((i - RG.pos) % n + n) % n; if (d > n / 2) d -= n;
+      if (Math.abs(d) > 0.4) { e.preventDefault(); e.stopPropagation(); RG.vel = 0; RG.snap = Math.round(RG.pos + d); RG.idle = -3; }
+    }, true);
+    requestAnimationFrame(ringLoop);
+  })();
+
+  /* filtres en plus sur la liste : chambres, année, marque (lus sur les cartes) */
+  var XF = { bed: 'all', yr: 'all', br: 'all' };
+  var BR = [['Trigano', /trigano|sir[eè]ne|kaleo/i], ['IRM', /\birm\b/i], ['O’Hara', /o['’]?hara/i], ['Sun Roller', /sun ?roller/i], ['Sunseeker', /sunseeker/i], ['Willerby', /willerby/i], ['Louisiane', /louisiane/i], ['Rapid’Home', /rapid/i]];
+  function cinfo(c) {
+    if (c.__xi) return c.__xi;
+    var t = (c.querySelector('h3') || {}).textContent || '', b = (c.querySelector('.badge') || {}).textContent || '', s = (c.querySelector('.sp') || {}).textContent || '';
+    var y = (b.match(/\b(19|20)\d\d\b/) || [])[0], bd = (s.match(/(\d+)\s*(chambre|bedroom)/i) || [])[1], br = '';
+    for (var i = 0; i < BR.length; i++) if (BR[i][1].test(t)) { br = BR[i][0]; break; }
+    return (c.__xi = { y: y ? +y : 0, bed: bd ? +bd : 0, br: br });
+  }
+  function xfilters() {
+    var price = app.querySelector('#f-price'), grid = app.querySelector('#grid');
+    if (!price || !grid) return;
+    var en = document.documentElement.lang === 'en', row = app.querySelector('.lf-xf');
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+    var brands = [], other = false;
+    cards.forEach(function (c) { var b = cinfo(c).br; if (b) { if (brands.indexOf(b) < 0) brands.push(b); } else other = true; });
+    brands.sort();
+    var sig = brands.join('|') + (other ? '+' : '');
+    if (!row) {
+      row = document.createElement('div'); row.className = 'filters lf-xf';
+      row.innerHTML = '<select id="lf-fb" aria-label="' + (en ? 'Bedrooms' : 'Chambres') + '"></select><select id="lf-fy" aria-label="' + (en ? 'Year' : 'Année') + '"></select><select id="lf-fm" aria-label="' + (en ? 'Brand' : 'Marque') + '"></select>' +
+        '<button type="button" class="lf-clr" hidden>' + (en ? 'Clear filters' : 'Effacer les filtres') + '</button>';
+      price.parentNode.parentNode.insertBefore(row, price.parentNode.nextSibling);
+      var o = function (a) { return a.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + '</option>'; }).join(''); };
+      row.querySelector('#lf-fb').innerHTML = o([['all', en ? 'All bedrooms' : 'Toutes chambres'], ['1', en ? '1 bedroom' : '1 chambre'], ['2', en ? '2 bedrooms' : '2 chambres'], ['3', en ? '3 or more' : '3 et plus']]);
+      row.querySelector('#lf-fy').innerHTML = o([['all', en ? 'All years' : 'Toutes années'], ['new', en ? '2024 and newer' : '2024 et plus'], ['mid', en ? '2020 to 2023' : '2020 à 2023'], ['old', en ? 'Before 2020' : 'Avant 2020']]);
+      row.__sig = null;
+    }
+    if (row.__sig !== sig) {
+      row.__sig = sig;
+      var m = row.querySelector('#lf-fm');
+      m.innerHTML = '<option value="all">' + (en ? 'All brands' : 'Toutes marques') + '</option>' + brands.map(function (b) { return '<option value="' + b + '">' + b + '</option>'; }).join('') + (other ? '<option value="other">' + (en ? 'Other / not stated' : 'Autres / non indiquée') + '</option>' : '');
+      if ([].concat(brands, other ? ['other'] : [], ['all']).indexOf(XF.br) < 0) XF.br = 'all';
+    }
+    row.querySelector('#lf-fb').value = XF.bed; row.querySelector('#lf-fy').value = XF.yr; row.querySelector('#lf-fm').value = XF.br;
+    var n = 0;
+    cards.forEach(function (c) {
+      var i = cinfo(c), ok = true;
+      if (XF.bed !== 'all') ok = ok && (XF.bed === '3' ? i.bed >= 3 : i.bed === +XF.bed);
+      if (XF.yr === 'new') ok = ok && i.y >= 2024; else if (XF.yr === 'mid') ok = ok && i.y >= 2020 && i.y <= 2023; else if (XF.yr === 'old') ok = ok && i.y > 0 && i.y < 2020;
+      if (XF.br !== 'all') ok = ok && (XF.br === 'other' ? !i.br : i.br === XF.br);
+      var d = ok ? '' : 'none'; if (c.style.display !== d) c.style.display = d;
+      if (ok) n++;
+    });
+    var act = XF.bed !== 'all' || XF.yr !== 'all' || XF.br !== 'all';
+    var clr = row.querySelector('.lf-clr'); if (clr.hidden !== !act) clr.hidden = !act;
+    var gd = grid.querySelector('.grid'), msg = grid.querySelector('.lf-none');
+    if (gd && act && n === 0) {
+      if (!msg) { msg = document.createElement('div'); msg.className = 'empty lf-none'; msg.textContent = en ? 'No model matches these filters.' : 'Aucun modèle ne correspond à ces filtres.'; grid.appendChild(msg); }
+    } else if (msg) msg.remove();
+    var sub = grid.querySelector('.sub');
+    if (sub) {
+      if (sub.__o === undefined) sub.__o = sub.textContent;
+      var tx = act ? n + (en ? (n > 1 ? ' models' : ' model') : (n > 1 ? ' modèles' : ' modèle')) : sub.__o;
+      if (sub.textContent !== tx) sub.textContent = tx;
+    }
+  }
+  document.addEventListener('change', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'lf-fb') XF.bed = e.target.value; else if (id === 'lf-fy') XF.yr = e.target.value; else if (id === 'lf-fm') XF.br = e.target.value; else return;
+    xfilters();
+  });
+  document.addEventListener('click', function (e) {
+    if (!(e.target.closest && e.target.closest('.lf-clr'))) return;
+    XF.bed = XF.yr = XF.br = 'all';
+    [['f-price', 'all'], ['f-surf', 'all'], ['f-sort', 'site']].forEach(function (x) {
+      var s = app.querySelector('#' + x[0]); if (s && s.value !== x[1]) { s.value = x[1]; s.dispatchEvent(new Event('change', { bubbles: true })); }
+    });
+    var st = app.querySelector('.chip[data-act="st"][data-v="all"]'); if (st && !st.classList.contains('on')) st.click();
+    xfilters();
+  });
+
+  function scan() {
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu();
+    if (!io) return;
+    var list = app.querySelectorAll(SEL), n = 0;
+    Array.prototype.forEach.call(list, function (el) {
+      if (el.__lf) return;
+      el.__lf = 1;
+      var r = el.getBoundingClientRect();
+      var near = r.top < innerHeight * 0.9 && r.bottom > 0;
+      if (near && el.closest('.hero')) return;
+      el.classList.add('lf-pre');
+      el.style.transitionDelay = (n++ % 4) * 70 + 'ms';
+      io.observe(el);
+    });
+  }
+
+  var queued = false;
+  function queue() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; scan(); }); }
+  new MutationObserver(queue).observe(app, { childList: true, subtree: true });
+  queue();
+
+  /* profondeur de l'en-tête : 3 plans (photo au fond, texte au milieu, panneau devant) */
+  var tgt = { x: 0, y: 0 }, cur3 = { x: 0, y: 0 }, loop3 = 0;
+  function setPtr(cx, cy) {
+    if (!heroEl) return;
+    var r = heroEl.getBoundingClientRect();
+    tgt.x = Math.max(-1, Math.min(1, (cx - r.left) / r.width * 2 - 1));
+    tgt.y = Math.max(-1, Math.min(1, (cy - r.top) / r.height * 2 - 1));
+  }
+  if (!reduce) {
+    addEventListener('mousemove', function (e) { setPtr(e.clientX, e.clientY); }, { passive: true });
+    addEventListener('touchmove', function (e) { if (heroVis && e.touches[0]) setPtr(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    addEventListener('touchend', function () { tgt.x = 0; tgt.y = 0; }, { passive: true });
+    var asked = false;
+    addEventListener('touchend', function () {
+      if (asked) return; asked = true;
+      try { if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().catch(function () {}); } catch (e) {}
+    }, { passive: true });
+    addEventListener('deviceorientation', function (e) {
+      if (e.gamma == null || !heroVis) return;
+      tgt.x = Math.max(-1, Math.min(1, e.gamma / 22));
+      tgt.y = Math.max(-1, Math.min(1, ((e.beta || 50) - 50) / 22));
+    }, { passive: true });
+    (function frame() {
+      loop3 = requestAnimationFrame(frame);
+      if (!heroEl || !heroVis) return;
+      cur3.x += (tgt.x - cur3.x) * 0.08; cur3.y += (tgt.y - cur3.y) * 0.08;
+      var H = heroEl.offsetHeight, p = Math.max(0, Math.min(H, -heroEl.getBoundingClientRect().top));
+      var back = heroEl.querySelector('.im'), mid = heroEl.querySelector('.t'), front = heroEl.querySelector('.cta');
+      var sy = Math.min(p * 0.12, H * 0.05);
+      if (back) back.style.translate = (-cur3.x * 12).toFixed(2) + 'px ' + (sy - cur3.y * 8).toFixed(2) + 'px';
+      if (mid) mid.style.translate = (cur3.x * 5).toFixed(2) + 'px ' + (cur3.y * 3 - p * 0.03).toFixed(2) + 'px';
+      if (front) {
+        front.style.translate = (cur3.x * 12).toFixed(2) + 'px ' + (cur3.y * 8 - p * 0.05).toFixed(2) + 'px';
+        front.style.setProperty('--gx', ((cur3.x + 1) * 50).toFixed(1) + '%');
+        front.style.setProperty('--gy', ((cur3.y + 1) * 50).toFixed(1) + '%');
+      }
+    })();
+  }
+
+  /* galerie : glisser le doigt pour changer de photo */
+  var sx = null, sy = 0, zoom = false;
+  document.addEventListener('touchstart', function (e) {
+    var t = e.target.closest && e.target.closest('.box img,.pd .main');
+    if (!t || e.touches.length !== 1) { sx = null; return; }
+    zoom = !!t.closest('.box');
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    var dir = dx < 0 ? 1 : -1, b;
+    if (zoom) { b = document.querySelector(dir > 0 ? '.box .n' : '.box .p'); if (b) b.click(); return; }
+    var th = Array.prototype.slice.call(document.querySelectorAll('.pd .th button'));
+    var i = th.indexOf(document.querySelector('.pd .th button.on'));
+    if (th.length > 1 && i > -1) th[(i + dir + th.length) % th.length].click();
+  }, { passive: true });
+
+  /* en-tête avec ombre au défilement */
+  function sc() { document.body.classList.toggle('lf-scrolled', window.scrollY > 8); }
+  addEventListener('scroll', sc, { passive: true }); sc();
+
+  /* transition entre pages */
+  addEventListener('hashchange', function () {
+    if (reduce) return;
+    var m = document.getElementById('main'); if (!m) return;
+    m.classList.remove('lf-pg'); void m.offsetWidth; m.classList.add('lf-pg');
+  });
+
+  /* témoignages qui défilent d'eux-mêmes */
+  if (!reduce) {
+    var hover = false;
+    app.addEventListener('mouseover', function (e) { if (e.target.closest && e.target.closest('#tm')) hover = true; });
+    app.addEventListener('mouseout', function () { hover = false; });
+    setInterval(function () {
+      var tm = document.getElementById('tm'), nx = tm && tm.querySelector('[data-act="tnext"]');
+      if (!nx || hover || document.hidden) return;
+      var r = tm.getBoundingClientRect();
+      if (r.top < innerHeight && r.bottom > 0) nx.click();
+    }, 8000);
+  }
+})();
