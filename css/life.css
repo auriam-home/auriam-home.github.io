@@ -271,3 +271,14 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-xf{margin-top:-4px}
 .lf-xf .lf-clr{min-height:44px;border:0;background:none;color:var(--cu-d,#9A6A27);font:inherit;font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 6px}
 .lf-xf .lf-clr[hidden]{display:none}
+
+/* Contact : nous trouver + être rappelé */
+.lf-find{margin-top:28px}
+.lf-find .lf-map{border-radius:14px;overflow:hidden;border:1px solid #E4DED3;margin:14px 0;background:#E4DED3}
+.lf-find .lf-map iframe{display:block;width:100%;height:260px;border:0}
+.lf-cb{margin-top:30px;padding:20px;border-radius:14px;background:#fff;border:1px solid #E4DED3;display:grid;gap:12px}
+.lf-cb h2{margin:0}.lf-cb p{margin:0}
+.lf-cb input{height:48px;border:1px solid #C9C1B2;border-radius:10px;padding:0 14px;font-size:16px;font-family:inherit;color:#14263F;min-width:0}
+.lf-cb select{font-size:16px}
+.lf-cb .btn{width:100%;border:0;cursor:pointer;font-family:inherit}
+.lf-cbm{min-height:1.2em;font-size:14px;color:#9A6A27;font-weight:600}
