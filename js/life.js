@@ -247,6 +247,23 @@
     }
   }
 
+
+  /* lien vers les guides d'achat (menu + bas de page), en français */
+  function guideLinks() {
+    if (document.documentElement.lang === 'en') return;
+    var f = app.querySelector('.foot a[href="#/financement"]');
+    if (f && !app.querySelector('.foot a[href="/guides/"]')) {
+      var br = document.createElement('br'), a = document.createElement('a'); a.href = '/guides/'; a.textContent = 'Guides d’achat';
+      f.nextSibling ? f.parentNode.insertBefore(br, f.nextSibling) : f.parentNode.appendChild(br);
+      br.parentNode.insertBefore(a, br.nextSibling);
+    }
+    var m = app.querySelector('.ov .dr a.l[href="#/financement"]');
+    if (m && !app.querySelector('.ov .dr a.l[href="/guides/"]')) {
+      var l = document.createElement('a'); l.className = 'l'; l.href = '/guides/'; l.textContent = 'Guides d’achat';
+      m.parentNode.insertBefore(l, m.nextSibling);
+    }
+  }
+
   /* bouton e-mail flottant, au-dessus de WhatsApp */
   function mailBtn() {
     var en = document.documentElement.lang === 'en';
@@ -668,7 +685,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
