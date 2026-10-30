@@ -204,6 +204,49 @@
     });
   }
 
+
+  /* statut des produits (Disponible / Réservé / Vendu) + bandeau livraison */
+  var STA = null, STB = 0;
+  function loadSta() {
+    if (STB) return; STB = 1;
+    var C = window.AURIAM_CONFIG; if (!(window.supabase && C)) return;
+    try {
+      window.supabase.createClient(C.url, C.key).from('products').select('id,status').then(function (r) {
+        if (r && !r.error && r.data) { STA = {}; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; }); status(); }
+      }, function () {});
+    } catch (e) {}
+  }
+  function status() {
+    loadSta(); if (!STA) return;
+    var en = document.documentElement.lang === 'en';
+    var N = en ? { available: 'Available', reserved: 'Reserved', sold: 'Sold' } : { available: 'Disponible', reserved: 'Réservé', sold: 'Vendu' };
+    function pill(s) { var e = document.createElement('span'); e.className = 'lf-sp lf-' + s; e.textContent = N[s] || N.available; return e; }
+    Array.prototype.forEach.call(app.querySelectorAll('a.card[href^="#/p/"]'), function (a) {
+      var s = STA[a.getAttribute('href').slice(4)] || 'available', ph = a.querySelector('.ph'); if (!ph) return;
+      var o = ph.querySelector('.lf-sp');
+      if (o && o.className === 'lf-sp lf-' + s && o.textContent === N[s]) return;
+      if (o) o.remove();
+      ph.appendChild(pill(s)); a.classList.toggle('lf-sold', s === 'sold');
+    });
+    var i = app.querySelector('.pd .i');
+    if (i) {
+      var id = location.hash.split('/')[2], s2 = STA[id] || 'available', ex = i.querySelector('.lf-sp');
+      if (!ex || ex.textContent !== N[s2]) {
+        if (ex) ex.remove();
+        var h1 = i.querySelector('h1'); if (h1) i.insertBefore(pill(s2), h1);
+      }
+      var bn = i.querySelector('.lf-dl');
+      if (s2 === 'sold') { if (bn) bn.remove(); }
+      else if (!bn) {
+        var note = i.querySelector('.price ~ .note'); if (!note) return;
+        bn = document.createElement('div'); bn.className = 'lf-dl';
+        bn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h13v10H1zM14 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>' +
+          (en ? '<b>Delivery across Europe.</b> 7 to 10 days (dedicated) or 2 to 3 weeks (grouped). Outside the EU on quote.' : '<b>Livraison partout en Europe.</b> 7 à 10 jours (dédiée) ou 2 à 3 semaines (groupée). Hors UE sur devis.') + '</span>';
+        note.parentNode.insertBefore(bn, note.nextSibling);
+      }
+    }
+  }
+
   /* bouton e-mail flottant, au-dessus de WhatsApp */
   function mailBtn() {
     var en = document.documentElement.lang === 'en';
@@ -625,7 +668,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); menu();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
