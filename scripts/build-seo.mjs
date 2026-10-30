@@ -48,6 +48,33 @@ function photos(p) {
 const D = await loadData();
 const S = {}; (D.settings || []).forEach((x) => { S[x.key] = x.value; });
 const cats = D.categories || [];
+
+/* ---------- identité de l'entreprise (données structurées) ---------- */
+const LEGAL = (() => { try { const t = fs.readFileSync(path.join(ROOT, 'js', 'legal.js'), 'utf8'); return JSON.parse(t.slice(t.indexOf('=') + 1).replace(/;\s*$/, '')); } catch (e) { return {}; } })();
+const ORG = (() => {
+  const o = {
+    '@context': 'https://schema.org', '@type': 'Organization', '@id': SITE + '/#organisation',
+    name: NAME, legalName: 'AURIAM HOME', url: SITE + '/', logo: SITE + '/logo-complet.webp', image: SITE + '/logo-complet.webp',
+    description: 'Vente de maisons mobiles, de maisons conteneurs et de conteneurs maritimes, neufs et d’occasion, à ' + CFG.city + '.',
+    address: { '@type': 'PostalAddress', streetAddress: CFG.street, postalCode: CFG.postalCode, addressLocality: CFG.city, addressRegion: CFG.region, addressCountry: CFG.country },
+    vatID: 'FR67912244088', taxID: '91224408800016', iso6523Code: '0002:912244088',
+    identifier: [{ '@type': 'PropertyValue', propertyID: 'SIREN', value: '912244088' }, { '@type': 'PropertyValue', propertyID: 'SIRET', value: '91224408800016' }],
+    areaServed: 'Europe', foundingLocation: CFG.city
+  };
+  return o;
+})();
+const orgFull = () => {
+  const o = JSON.parse(JSON.stringify(ORG));
+  o['@type'] = ['Organization', 'LocalBusiness'];
+  o.openingHoursSpecification = [
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' },
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '09:00', closes: '13:00' }
+  ];
+  if (S.phone) o.telephone = String(S.phone);
+  if (S.email) o.email = String(S.email);
+  return o;
+};
+
 const prods = D.products || [];
 const catName = (slug) => { const c = cats.find((x) => x.slug === slug); return c ? c.name_fr || c.name_en : slug; };
 
@@ -81,7 +108,7 @@ function layout({ title, desc, path: p, ogImage, body, jsonld = [], type = 'webs
     '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">' +
     '<link rel="stylesheet" href="/css/site.css"><style>.seo-nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;font-weight:500}.pd .main{cursor:default}.th a{flex:none;width:76px;height:58px;border-radius:8px;overflow:hidden;background:#fff;border:2px solid transparent;display:block}.crumb{font-size:13px;color:var(--mut)}.crumb a{text-decoration:underline}</style>' +
-    jsonld.map(ld).join('') + '</head><body>' +
+    [orgFull()].concat(jsonld).map(ld).join('') + '</head><body>' +
     '<header class="top"><div class="wrap"><a class="logo" href="/" aria-label="' + esc(NAME) + '"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true"><path d="M12 90 L50 14 L88 90" fill="none" stroke="#14263F" stroke-width="14"/><rect x="27" y="54" width="46" height="23" fill="#C98A3D"/><path d="M38.5 54V77M50 54V77M61.5 54V77" stroke="#fff" stroke-width="2.5"/></svg><span><b>AURIAM</b><i>HOME</i></span></a>' +
     '<nav class="seo-nav" aria-label="Navigation"><a href="/">Accueil</a><a href="/catalogue/">Catalogue</a><a href="/guides/">Guides</a></nav></div></header>' +
     '<main>' + body + '</main>' + footer() + '</body></html>\n';
@@ -90,7 +117,7 @@ function footer() {
   const wa = waHref('Bonjour AURIAM HOME, je souhaite des informations.');
   return '<footer class="foot"><div class="wrap"><div><b style="font-size:18px;letter-spacing:3px">AURIAM <span style="color:#C98A3D">HOME</span></b>Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.</div>' +
     '<div><b>Contact</b>' + esc(CFG.street) + ', ' + esc(CFG.postalCode) + ' ' + esc(CFG.city) + '<br>' + (S.email ? '<a href="mailto:' + esc(S.email) + '">' + esc(S.email) + '</a><br>' : '') + (S.phone ? esc(S.phone) + '<br>' : '') + (wa ? '<a href="' + esc(wa) + '" rel="noopener">WhatsApp</a>' : '<a href="/#/contact">Nous contacter</a>') + '</div>' +
-    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/#/mentions">Mentions légales</a><br><a href="/#/cgv">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
+    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/mentions-legales/">Mentions légales</a><br><a href="/conditions-generales-de-vente/">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
 }
 function card(p) {
   const ph = photos(p)[0];
@@ -292,14 +319,37 @@ function guidesIndex() {
   urls.push({ loc: '/guides/', pr: '0.8' });
 }
 
+
+/* ---------- pages légales statiques ---------- */
+function legalHtml(name) {
+  let h = (LEGAL.fr && LEGAL.fr[name]) || '';
+  if (!h) return '';
+  const parts = [];
+  if (S.email) parts.push(esc(S.email));
+  if (S.phone) parts.push(esc(S.phone));
+  if (S.whatsapp) parts.push('WhatsApp : ' + esc(S.whatsapp));
+  h = h.replace(/Contact\s*:\s*\{\{email\}\}\s*·\s*\{\{phone\}\}\s*·\s*WhatsApp\s*:\s*\{\{wa\}\}/g, 'Contact : ' + (parts.join(' · ') || 'via le formulaire de contact du site'));
+  h = h.replace(/\{\{email\}\}/g, S.email ? esc(S.email) : 'notre page contact').replace(/\{\{phone\}\}/g, S.phone ? esc(S.phone) : '').replace(/\{\{wa\}\}/g, S.whatsapp ? esc(S.whatsapp) : '');
+  return h.replace('<h2>', '<h1>').replace('</h2>', '</h1>');
+}
+function legalPage(name, slug, title, desc) {
+  const body = legalHtml(name); if (!body) return;
+  const url = '/' + slug + '/';
+  const h = '<section class="doc"><p class="crumb"><a href="/">Accueil</a></p>' + body + '</section>';
+  files.set(url + 'index.html', layout({ title: title + ' | ' + NAME, desc, path: url, body: h }));
+  urls.push({ loc: url, pr: '0.4' });
+}
+
 cats.forEach(categoryPage);
 guidesIndex();
 GUIDES.forEach(guidePage);
+legalPage('mentions', 'mentions-legales', 'Mentions légales', 'Mentions légales d’AURIAM HOME, SASU à Périgueux : éditeur, SIREN, SIRET, TVA intracommunautaire, RCS, hébergement et données personnelles.');
+legalPage('cgv', 'conditions-generales-de-vente', 'Conditions générales de vente', 'Conditions générales de vente d’AURIAM HOME : commande, paiement comptant ou échelonné, livraison, installation, garanties.');
 prods.forEach(productPage);
 cataloguePage();
 
 /* ---------- écriture ---------- */
-for (const dir of ['produits', 'categories', 'catalogue', 'guides']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
+for (const dir of ['produits', 'categories', 'catalogue', 'guides', 'mentions-legales', 'conditions-generales-de-vente']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
 for (const [p, content] of files) {
   const f = path.join(ROOT, p);
   fs.mkdirSync(path.dirname(f), { recursive: true });
@@ -308,4 +358,16 @@ for (const [p, content] of files) {
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   urls.map((u) => '  <url><loc>' + esc(SITE + u.loc) + '</loc><priority>' + u.pr + '</priority></url>').join('\n') + '\n</urlset>\n');
 fs.writeFileSync(path.join(ROOT, 'robots.txt'), 'User-agent: *\nDisallow: /admin.html\n\nSitemap: ' + SITE + '/sitemap.xml\n');
+
+/* ---------- carte d'identité dans la page d'accueil (idempotent) ---------- */
+try {
+  const ix = path.join(ROOT, 'index.html');
+  if (fs.existsSync(ix)) {
+    let t = fs.readFileSync(ix, 'utf8');
+    const block = '<!--org-start-->' + ld(orgFull()) + '<link rel="canonical" href="' + SITE + '/"><!--org-end-->';
+    t = t.replace(/<!--org-start-->[\s\S]*?<!--org-end-->\n?/, '');
+    if (t.includes('</head>')) { t = t.replace('</head>', block + '\n</head>'); fs.writeFileSync(ix, t); }
+  }
+} catch (e) { console.log('index.html non modifié : ' + e.message); }
+
 console.log('OK : ' + prods.length + ' produits, ' + cats.length + ' catégories, ' + urls.length + ' adresses.');
