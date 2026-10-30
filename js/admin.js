@@ -19,8 +19,10 @@
       sb.from('categories').select('*').order('sort_order'),
       sb.from('products').select('*').order('sort_order').order('created_at'),
       sb.from('settings').select('*'),
-      sb.from('testimonials').select('*').order('sort_order').order('created_at')
+      sb.from('testimonials').select('*').order('sort_order').order('created_at'),
+      sb.from('callbacks').select('*').order('created_at', { ascending: false })
     ]).then(function (r) {
+      st.cb = r[4] && !r[4].error ? r[4].data || [] : []; st.cbErr = r[4] && r[4].error ? r[4].error.message : null;
       st.tem = r[3] && !r[3].error ? r[3].data || [] : []; st.temErr = r[3] && r[3].error ? r[3].error.message : null;
       if (r[0].error) throw r[0].error; if (r[1].error) throw r[1].error;
       st.cats = r[0].data || []; st.prods = r[1].data || [];
@@ -44,7 +46,7 @@
   }
   function head() {
     return '<div class="ad"><div class="bar"><h1 style="margin:0">Administration</h1><div style="display:flex;gap:8px"><a class="btn gh sm" href="index.html" target="_blank">Voir le site</a><button class="btn gh sm" data-a="logout">Déconnexion</button></div></div>' +
-      '<div class="tabs">' + [['prod', 'Produits'], ['cat', 'Catégories'], ['tem', 'Témoignages'], ['vid', 'Vidéos'], ['set', 'Contact']].map(function (t) { return '<button class="chip' + (st.tab === t[0] ? ' on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' + msgHtml();
+      '<div class="tabs">' + [['prod', 'Produits'], ['cat', 'Catégories'], ['cb', 'Rappels' + ((st.cb || []).filter(function (x) { return !x.done; }).length ? ' (' + st.cb.filter(function (x) { return !x.done; }).length + ')' : '')], ['tem', 'Témoignages'], ['vid', 'Vidéos'], ['set', 'Contact']].map(function (t) { return '<button class="chip' + (st.tab === t[0] ? ' on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' + msgHtml();
   }
   function catName(slug) { var c = st.cats.find(function (x) { return x.slug === slug; }); return c ? c.name_fr : slug; }
   function prodList() {
@@ -83,6 +85,19 @@
         return '<div class="row" style="flex-wrap:wrap" data-slug="' + esc(c.slug) + '"><div class="m" style="flex:1 1 100%"><small>' + esc(c.slug) + ' · ' + n + ' produit(s)</small></div><input type="text" class="cf" placeholder="Nom français" value="' + esc(c.name_fr) + '" style="flex:1 1 40%"><input type="text" class="ce" placeholder="Nom anglais" value="' + esc(c.name_en || '') + '" style="flex:1 1 40%"><input type="number" class="co" value="' + esc(c.sort_order || 0) + '" style="flex:0 0 80px"><button class="btn gh sm" data-a="csave" data-v="' + esc(c.slug) + '">OK</button><button class="btn dn sm" data-a="cdel" data-v="' + esc(c.slug) + '">Suppr.</button></div>';
       }).join('') +
       '<b style="display:block;margin-top:18px">Nouvelle catégorie</b><div class="two">' + inp('n_fr', 'Nom français', '') + inp('n_en', 'Nom anglais', '') + '</div><div style="height:12px"></div><button class="btn cu sm" data-a="cadd">Ajouter</button></div></div>';
+  }
+  function cbView() {
+    var a = st.cb || [], n = a.filter(function (x) { return !x.done; }).length;
+    return head() + (st.cbErr ? '<div class="msg er">La table « callbacks » est introuvable. Exécutez le fichier callbacks.sql dans Supabase (SQL Editor).</div>' : '') +
+      '<div class="bar"><b>' + n + ' à rappeler · ' + (a.length - n) + ' déjà rappelé(s)</b></div>' +
+      (a.length ? '' : '<div class="hint">Aucune demande pour le moment. Elles apparaissent ici quand un visiteur utilise « Être rappelé ».</div>') +
+      a.map(function (x) {
+        var d = x.created_at ? new Date(x.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+        return '<div class="card2" style="' + (x.done ? 'opacity:.6' : '') + '"><b>' + esc(x.name) + '</b> <span class="hint">' + esc(d) + '</span><br>' +
+          '<a href="tel:' + esc(String(x.phone).replace(/[^\d+]/g, '')) + '" style="font-size:20px;font-weight:700;text-decoration:underline">' + esc(x.phone) + '</a>' +
+          '<div class="hint" style="margin-top:6px">Moment souhaité : ' + esc(x.slot || '—') + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><button class="btn ' + (x.done ? 'gh' : 'cu') + ' sm" data-a="cbdone" data-v="' + esc(x.id) + '">' + (x.done ? 'Remettre à rappeler' : 'Marquer comme rappelé') + '</button><button class="btn gh sm" data-a="cbdel" data-v="' + esc(x.id) + '">Supprimer</button></div></div>';
+      }).join('') + '</div>';
   }
   function temView() {
     return head() + (st.temErr ? '<div class="msg er">La table « testimonials » est introuvable. Exécutez le fichier testimonials.sql dans Supabase (SQL Editor).</div>' : '') +
@@ -139,7 +154,7 @@
   }
   function render() {
     if (!st.user) { root.innerHTML = login(); return; }
-    root.innerHTML = st.edit ? form() : st.tab === 'cat' ? catView() : st.tab === 'tem' ? temView() : st.tab === 'vid' ? vidView() : st.tab === 'set' ? setView() : prodList();
+    root.innerHTML = st.edit ? form() : st.tab === 'cat' ? catView() : st.tab === 'cb' ? cbView() : st.tab === 'tem' ? temView() : st.tab === 'vid' ? vidView() : st.tab === 'set' ? setView() : prodList();
   }
 
   /* ---------- images ---------- */
@@ -264,6 +279,8 @@
       };
       vf.click();
     }
+    else if (a === 'cbdone') { var cx = (st.cb || []).find(function (x) { return String(x.id) === v; }); if (!cx) return; sb.from('callbacks').update({ done: !cx.done }).eq('id', v).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Enregistré.'); }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); }); }
+    else if (a === 'cbdel') { if (!confirm('Supprimer cette demande ?')) return; sb.from('callbacks').delete().eq('id', v).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Demande supprimée.'); }).catch(function (e) { flash('Erreur : ' + (e.message || e), false); }); }
     else if (a === 'tnew') { sb.from('testimonials').insert({ name: 'Nouveau client', text_fr: '', sort_order: st.tem.length + 1 }).then(function (r) { if (r.error) throw r.error; return loadAll(); }).then(function () { flash('Témoignage ajouté : complétez-le puis enregistrez.'); }).catch(function (e) { flash('Erreur : ' + e.message, false); }); }
     else if (a === 'tsave') {
       var c = document.querySelector('[data-tid="' + v + '"]');
