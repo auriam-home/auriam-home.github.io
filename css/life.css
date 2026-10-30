@@ -295,4 +295,4 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-dl svg{flex:none;color:#9A6A27;margin-top:1px}
 
 /* évite l'éclair de l'ancien logo : le dessin d'origine reste caché jusqu'au remplacement */
-.top .logo:not(.lf-st) svg{visibility:hidden;width:48px;height:46px}
+.top .logo:not(.lf-st) svg{visibility:hidden;width:51px;height:46px}
