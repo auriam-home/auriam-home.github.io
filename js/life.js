@@ -152,6 +152,58 @@
     heroIO.observe(h);
   }
 
+
+  /* page Contact : « Nous trouver » (plan, itinéraire) + « Être rappelé » */
+  function findus() {
+    if (location.hash.replace(/\/$/, '') !== '#/contact') return;
+    var doc = app.querySelector('section.doc');
+    if (!doc || doc.querySelector('.lf-find')) return;
+    var en = document.documentElement.lang === 'en';
+    var q = encodeURIComponent('AURIAM HOME, Route de Lyon, 24000 Périgueux');
+    var w = doc.querySelector('a[href^="https://wa.me/"]') || app.querySelector('a[href^="https://wa.me/"]');
+    var mail = app.querySelector('.foot a[href^="mailto:"]') || doc.querySelector('a[href^="mailto:"]');
+    var T = en ? {
+      h: 'Find us', a: 'Showroom: Route de Lyon, 24000 Périgueux, France. Visits are welcome by appointment.', hrs: ['Opening hours', 'Monday to Friday: 9 am – 6 pm', 'Saturday: 9 am – 1 pm', 'Sunday: closed'], go: 'Get directions',
+      rh: 'Request a call back', rp: 'Leave your number: we call you back.', n: 'Your name', t: 'Your phone number', s: 'When?',
+      o: ['As soon as possible', 'Morning', 'Afternoon', 'Evening'], b: 'Call me back', ok: 'Your message is ready: send it to us.', sent: 'Thank you! We will call you back during opening hours.',
+      msg: function (n, t, s) { return 'Hello, please call me back.\nName: ' + n + '\nPhone: ' + t + '\nWhen: ' + s; }, none: 'Please enter your name and phone number.'
+    } : {
+      h: 'Nous trouver', a: 'Parc d’exposition : Route de Lyon, 24000 Périgueux, France. Visites bienvenues sur rendez-vous.', hrs: ['Horaires d’ouverture', 'Du lundi au vendredi : 9 h – 18 h', 'Samedi : 9 h – 13 h', 'Dimanche : fermé'], go: 'Obtenir l’itinéraire',
+      rh: 'Être rappelé', rp: 'Laissez votre numéro : nous vous rappelons.', n: 'Votre nom', t: 'Votre numéro de téléphone', s: 'Quand ?',
+      o: ['Dès que possible', 'Le matin', 'L’après-midi', 'Le soir'], b: 'Être rappelé', ok: 'Votre message est prêt : envoyez-le-nous.', sent: 'Merci ! Nous vous rappelons pendant nos horaires d’ouverture.',
+      msg: function (n, t, s) { return 'Bonjour, merci de me rappeler.\nNom : ' + n + '\nTéléphone : ' + t + '\nQuand : ' + s; }, none: 'Indiquez votre nom et votre numéro.'
+    };
+    var d = document.createElement('div'); d.className = 'lf-find';
+    d.innerHTML = '<h2>' + T.h + '</h2><p>' + T.a + '</p><p class="lf-hrs"><b>' + T.hrs[0] + '</b><br>' + T.hrs.slice(1).join('<br>') + '</p>' +
+      '<div class="lf-map"><iframe title="' + T.h + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=' + q + '&output=embed"></iframe></div>' +
+      '<p><a class="btn cu" style="width:auto" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + q + '">' + T.go + '</a></p>' +
+      '<form class="lf-cb" novalidate><h2>' + T.rh + '</h2><p>' + T.rp + '</p>' +
+      '<input name="n" type="text" autocomplete="name" placeholder="' + T.n + '" aria-label="' + T.n + '">' +
+      '<input name="t" type="tel" autocomplete="tel" inputmode="tel" placeholder="' + T.t + '" aria-label="' + T.t + '">' +
+      '<select name="s" aria-label="' + T.s + '">' + T.o.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select>' +
+      '<button class="btn cu" type="submit">' + T.b + '</button><p class="lf-cbm" role="status"></p></form>';
+    doc.appendChild(d);
+    var f = d.querySelector('form'), m = d.querySelector('.lf-cbm');
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var n = f.n.value.trim(), t = f.t.value.trim();
+      if (!n || t.replace(/\D/g, '').length < 6) { m.textContent = T.none; return; }
+      var txt = T.msg(n, t, f.s.value), btn = f.querySelector('button'), C = window.AURIAM_CONFIG;
+      function fallback() {
+        if (w) { m.textContent = T.ok; window.open(w.getAttribute('href').split('?')[0] + '?text=' + encodeURIComponent(txt), '_blank'); }
+        else if (mail) { location.href = mail.getAttribute('href').split('?')[0] + '?subject=' + encodeURIComponent(T.rh) + '&body=' + encodeURIComponent(txt); }
+      }
+      if (!(window.supabase && C)) return fallback();
+      btn.disabled = true;
+      var c = window.supabase.createClient(C.url, C.key);
+      c.from('callbacks').insert({ name: n.slice(0, 80), phone: t.slice(0, 30), slot: f.s.value, lang: en ? 'en' : 'fr' }).then(function (r) {
+        btn.disabled = false;
+        if (r.error) return fallback();
+        f.reset(); m.textContent = T.sent;
+      }, function () { btn.disabled = false; fallback(); });
+    });
+  }
+
   /* bouton e-mail flottant, au-dessus de WhatsApp */
   function mailBtn() {
     var en = document.documentElement.lang === 'en';
@@ -573,7 +625,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); menu();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); menu();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
