@@ -67,6 +67,7 @@
     h += '<div class="card2"><div class="two">' + inp('f_price', 'Prix (€) – vide = sur demande', p.price, 'number') + inp('f_year', 'Année', p.year, 'number') + '</div>' +
       '<div class="two">' + inp('f_len', 'Longueur (m)', p.length_m, 'number') + inp('f_wid', 'Largeur (m)', p.width_m, 'number') + '</div>' +
       '<div class="two">' + inp('f_surf', 'Surface (m²)', p.surface_m2, 'number') + inp('f_bed', 'Chambres', p.bedrooms, 'number') + '</div>' +
+      ((st.prods[0] && 'status' in st.prods[0]) || 'status' in p ? '<label for="f_status">Statut</label><select id="f_status">' + [['available', 'Disponible'], ['reserved', 'Réservé'], ['sold', 'Vendu']].map(function (o) { return '<option value="' + o[0] + '"' + ((p.status || 'available') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' : '<div class="msg er">Pour activer « Statut » (Disponible / Réservé / Vendu), exécutez le fichier status.sql dans Supabase (SQL Editor), puis rechargez.</div>') +
       inp('f_sort', 'Ordre d’affichage (petit = en premier)', p.sort_order == null ? 0 : p.sort_order, 'number') +
       '<div class="chk"><input id="f_pub" type="checkbox"' + (p.published !== false ? ' checked' : '') + '><label for="f_pub" style="margin:0">Visible sur le site</label></div>' +
       '<div class="chk"><input id="f_feat" type="checkbox"' + (p.featured ? ' checked' : '') + '><label for="f_feat" style="margin:0">Afficher « à la une » sur l’accueil</label></div></div>';
@@ -198,7 +199,7 @@
     var p = st.edit;
     p.category = val('f_cat'); p.title_fr = val('f_tfr'); p.title_en = val('f_ten'); p.desc_fr = val('f_dfr'); p.desc_en = val('f_den');
     p.price = nz(val('f_price')); p.year = nz(val('f_year')); p.length_m = nz(val('f_len')); p.width_m = nz(val('f_wid')); p.surface_m2 = nz(val('f_surf')); p.bedrooms = nz(val('f_bed'));
-    p.sort_order = nz(val('f_sort')) || 0; p.published = document.getElementById('f_pub').checked; p.featured = document.getElementById('f_feat').checked;
+    var fs = document.getElementById('f_status'); if (fs) p.status = fs.value; p.sort_order = nz(val('f_sort')) || 0; p.published = document.getElementById('f_pub').checked; p.featured = document.getElementById('f_feat').checked;
     p.features_fr = lines(val('f_ffr')); p.features_en = lines(val('f_fen')); p.equipment_fr = lines(val('f_efr')); p.equipment_en = lines(val('f_een'));
   }
 
@@ -207,7 +208,7 @@
     keep(); var p = st.edit;
     if (!p.title_fr.trim()) return flash('Le titre français est obligatoire.', false);
     var row = {};
-    ['category', 'title_fr', 'title_en', 'desc_fr', 'desc_en', 'features_fr', 'features_en', 'equipment_fr', 'equipment_en', 'price', 'year', 'length_m', 'width_m', 'surface_m2', 'bedrooms', 'photos', 'featured', 'published', 'sort_order'].forEach(function (k) { row[k] = p[k] === undefined ? null : p[k]; });
+    ['category', 'title_fr', 'title_en', 'desc_fr', 'desc_en', 'features_fr', 'features_en', 'equipment_fr', 'equipment_en', 'price', 'year', 'length_m', 'width_m', 'surface_m2', 'bedrooms', 'photos', 'featured', 'published', 'sort_order'].concat('status' in p ? ['status'] : []).forEach(function (k) { row[k] = p[k] === undefined ? null : p[k]; });
     if (!row.photos) row.photos = [];
     var q = p.id ? sb.from('products').update(row).eq('id', p.id) : sb.from('products').insert(row);
     q.then(function (r) {
