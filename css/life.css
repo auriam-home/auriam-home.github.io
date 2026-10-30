@@ -293,3 +293,6 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .card.lf-sold .ph img{filter:grayscale(.85);opacity:.8}
 .lf-dl{display:flex;gap:12px;align-items:flex-start;margin:14px 0;padding:14px 16px;border-radius:12px;background:#fff;border:1px solid #E4DED3;border-left:4px solid #C98A3D;color:#14263F;font-size:14px;line-height:1.45}
 .lf-dl svg{flex:none;color:#9A6A27;margin-top:1px}
+
+/* évite l'éclair de l'ancien logo : le dessin d'origine reste caché jusqu'au remplacement */
+.top .logo:not(.lf-st) svg{visibility:hidden;width:48px;height:46px}
