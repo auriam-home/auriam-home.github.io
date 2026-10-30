@@ -282,3 +282,14 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-cb select{font-size:16px}
 .lf-cb .btn{width:100%;border:0;cursor:pointer;font-family:inherit}
 .lf-cbm{min-height:1.2em;font-size:14px;color:#9A6A27;font-weight:600}
+
+/* statuts produits + bandeau livraison */
+.card .ph{position:relative}
+.lf-sp{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;padding:5px 11px;border-radius:999px;color:#fff;background:#1F9D55;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.card .ph .lf-sp{position:absolute;left:10px;top:10px;z-index:2}
+.pd .i>.lf-sp{margin-bottom:8px}
+.lf-sp.lf-reserved{background:#C98A3D}
+.lf-sp.lf-sold{background:#4C5A70}
+.card.lf-sold .ph img{filter:grayscale(.85);opacity:.8}
+.lf-dl{display:flex;gap:12px;align-items:flex-start;margin:14px 0;padding:14px 16px;border-radius:12px;background:#fff;border:1px solid #E4DED3;border-left:4px solid #C98A3D;color:#14263F;font-size:14px;line-height:1.45}
+.lf-dl svg{flex:none;color:#9A6A27;margin-top:1px}
