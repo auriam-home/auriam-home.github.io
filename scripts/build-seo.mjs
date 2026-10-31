@@ -121,7 +121,7 @@ function footer() {
   const wa = waHref('Bonjour AURIAM HOME, je souhaite des informations.');
   return '<footer class="foot"><div class="wrap"><div><img src="' + FOOTLOGO + '" alt="AURIAM HOME" width="120" height="110" style="display:block;height:110px;width:auto;margin-bottom:14px">Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.</div>' +
     '<div><b>Contact</b>' + esc(CFG.street) + ', ' + esc(CFG.postalCode) + ' ' + esc(CFG.city) + '<br>' + (S.email ? '<a href="mailto:' + esc(S.email) + '">' + esc(S.email) + '</a><br>' : '') + (S.phone ? esc(S.phone) + '<br>' : '') + (wa ? '<a href="' + esc(wa) + '" rel="noopener">WhatsApp</a>' : '<a href="/#/contact">Nous contacter</a>') + '</div>' +
-    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/guides/">Guides d’achat</a><br><a href="/mentions-legales/">Mentions légales</a><br><a href="/conditions-generales-de-vente/">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
+    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/guides/">Guides d’achat</a><br><a href="/simulateur/">Simulateur de mensualités</a><br><a href="/faq/">Questions fréquentes</a><br><a href="/a-propos/">À propos</a><br><a href="/mentions-legales/">Mentions légales</a><br><a href="/conditions-generales-de-vente/">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
 }
 function card(p) {
   const ph = photos(p)[0];
@@ -344,16 +344,81 @@ function legalPage(name, slug, title, desc) {
   urls.push({ loc: url, pr: '0.4' });
 }
 
+
+/* ---------- À propos, FAQ, simulateur ---------- */
+const FAQ = [
+ ['Comment obtenir un devis ?', '<p>Le devis est gratuit et valable 30 jours. Écrivez-nous sur WhatsApp, utilisez le bouton « Demander un devis » d’une fiche produit ou demandez à être rappelé depuis la <a href="/#/contact">page Contact</a>, en indiquant le modèle et le lieu de livraison.</p>'],
+ ['Quels sont les délais de livraison ?', '<p>Comptez 7 à 10 jours pour une livraison dédiée et 2 à 3 semaines pour une livraison groupée, à tarif avantageux. Le délai commence à la réception de l’acompte.</p>'],
+ ['Livrez-vous dans toute l’Europe ?', '<p>Oui, nous livrons partout en Europe, et hors Union européenne sur devis. Hors Union européenne, les droits de douane, la TVA à l’importation et les formalités sont à votre charge, sauf mention contraire dans le devis.</p>'],
+ ['Qui décharge et installe le mobil-home ?', '<p>AURIAM HOME réalise gratuitement le déchargement et l’installation. La préparation du terrain reste à votre charge, et si l’accès est difficile et qu’une grue est nécessaire, vous louez une grue locale à vos frais. Un plan de préparation du terrain vous est envoyé avant la livraison.</p>'],
+ ['Comment se déroule le paiement ?', '<p><strong>Paiement comptant :</strong> avant le départ du camion, 100 % des frais de transport et 20 % du prix du produit ; sur votre terrain, après vérification de l’état du produit, les 80 % restants et la TVA.</p><p><strong>Paiement échelonné :</strong> 100 % des frais de transport avant la livraison, 30 % du prix du produit à la livraison, puis les 70 % restants et la TVA en plusieurs versements jusqu’à 36 mois, selon le contrat signé. Le produit reste la propriété d’AURIAM HOME jusqu’au paiement complet. Voir le <a href="/simulateur/">simulateur</a>.</p>'],
+ ['Faut-il passer par une banque pour le paiement échelonné ?', '<p>Non. AURIAM HOME peut financer votre achat directement, sans banque ni organisme financier, sous réserve d’acceptation de votre dossier et selon les conditions du contrat.</p>'],
+ ['Les prix affichés incluent-ils la livraison et la TVA ?', '<p>Non. Les prix sont indicatifs et s’entendent livraison et TVA non incluses. Le coût du transport dépend de la destination et figure dans votre devis.</p>'],
+ ['Puis-je visiter le parc d’exposition ?', '<p>Oui, les visites sont bienvenues sur rendez-vous, Route de Lyon à Périgueux. Nous sommes ouverts du lundi au vendredi de 9 h à 18 h et le samedi de 9 h à 13 h. Contactez-nous pour convenir d’un moment.</p>'],
+ ['Ai-je besoin d’une autorisation pour installer un mobil-home ?', '<p>Cela dépend de votre commune et de votre terrain. L’obtention des autorisations est de la responsabilité de l’acheteur : renseignez-vous auprès de votre mairie avant de commander. Notre guide <a href="/guides/autorisations-installation-mobil-home/">autorisations d’installation</a> donne les repères généraux.</p>'],
+ ['Que dois-je vérifier à la livraison ?', '<p>Vous contrôlez le produit en présence du transporteur et vous signez un procès-verbal de livraison. Le solde est dû après ce contrôle.</p>'],
+ ['Faut-il choisir un mobil-home neuf ou d’occasion ?', '<p>Cela dépend de votre budget et de l’usage prévu. Notre guide <a href="/guides/neuf-ou-occasion/">neuf ou d’occasion</a> compare les deux options.</p>'],
+ ['Comment vous contacter ?', '<p>Par WhatsApp, par e-mail ou en demandant à être rappelé depuis la <a href="/#/contact">page Contact</a>. Nous répondons pendant nos horaires d’ouverture.</p>']
+];
+const stripTags = (h) => h.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+function faqPage() {
+  let h = '<section class="doc"><p class="crumb"><a href="/">Accueil</a></p><h1>Questions fréquentes</h1><p>Les réponses aux questions que l’on nous pose le plus souvent sur l’achat, la livraison et le paiement d’un mobil-home ou d’une maison conteneur.</p>';
+  FAQ.forEach(([q, a]) => { h += '<h2>' + esc(q) + '</h2>' + a; });
+  const wa = waHref('Bonjour AURIAM HOME, j’ai une question.');
+  h += '<p><a class="btn wa" style="width:auto" href="' + esc(wa || '/#/contact') + '"' + (wa ? ' target="_blank" rel="noopener"' : '') + '>Poser une autre question sur WhatsApp</a></p></section>';
+  const ldq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: stripTags(a) } })) };
+  files.set('/faq/index.html', layout({ title: 'Questions fréquentes : livraison, paiement, devis | ' + NAME, desc: clip('Devis, délais de livraison, paiement comptant ou échelonné, installation, autorisations : les réponses aux questions sur l’achat d’un mobil-home chez ' + NAME + '.', 158), path: '/faq/', body: h, jsonld: [ldq] }));
+  urls.push({ loc: '/faq/', pr: '0.7' });
+}
+
+function aboutPage() {
+  const feat = prods.filter((p) => p.featured).slice(0, 3);
+  const showcase = (feat.length ? feat : prods.slice(0, 3));
+  let h = '<section class="doc"><p class="crumb"><a href="/">Accueil</a></p><h1>À propos d’' + esc(NAME) + '</h1>' +
+    '<p>' + esc(NAME) + ' est une société basée à ' + esc(CFG.city) + ' (' + esc(CFG.region) + ') qui vend des maisons mobiles, des maisons conteneurs et des conteneurs maritimes, neufs et d’occasion.</p>' +
+    '<h2>Ce que nous proposons</h2><ul><li>Des mobil-homes neufs et d’occasion, de plusieurs tailles.</li><li>Des maisons conteneurs et des conteneurs maritimes.</li><li>La livraison partout en Europe, et hors Union européenne sur devis.</li><li>Le déchargement et l’installation gratuits.</li></ul>' +
+    '<h2>Notre façon de travailler</h2><ul><li><strong>Un devis gratuit</strong>, valable 30 jours.</li><li><strong>Un paiement adapté :</strong> comptant, ou échelonné jusqu’à 36 mois, directement avec nous et sans banque, sous réserve d’acceptation du dossier.</li><li><strong>Des conditions claires :</strong> livraison, délais et paiement sont détaillés sur le site (voir la <a href="/faq/">FAQ</a> et nos <a href="/guides/">guides d’achat</a>).</li></ul>' +
+    '<h2>Nous rendre visite</h2><p>Parc d’exposition : ' + esc(CFG.street) + ', ' + esc(CFG.postalCode) + ' ' + esc(CFG.city) + ', France. Visites bienvenues sur rendez-vous.</p><p>Horaires : du lundi au vendredi de 9 h à 18 h, le samedi de 9 h à 13 h.</p>' +
+    '<p><a class="btn cu" style="width:auto" href="/#/contact">Nous trouver et nous contacter</a></p>' +
+    '<h2>Informations légales</h2><p>AURIAM HOME, société par actions simplifiée unipersonnelle (SASU). SIREN 912 244 088 · SIRET 912 244 088 00016 · TVA intracommunautaire FR67 912 244 088 · RCS Périgueux. Voir les <a href="/mentions-legales/">mentions légales</a>.</p>' +
+    (showcase.length ? '<h2>Quelques-uns de nos modèles</h2><div class="grid">' + showcase.map(card).join('') + '</div><p style="margin-top:18px"><a class="btn cu" style="width:auto" href="/catalogue/">Voir tout le catalogue</a></p>' : '') + '</section>';
+  files.set('/a-propos/index.html', layout({ title: 'À propos d’' + NAME + ' – mobil-homes et conteneurs à ' + CFG.city, desc: clip(NAME + ' à ' + CFG.city + ' : vente de mobil-homes, maisons conteneurs et conteneurs maritimes, neufs et d’occasion. Livraison en Europe, paiement échelonné, visites sur rendez-vous.', 158), path: '/a-propos/', body: h }));
+  urls.push({ loc: '/a-propos/', pr: '0.6' });
+}
+
+function simPage() {
+  const list = prods.filter((p) => p.price).map((p) => ({ t: txt(p, 'title') + (p.year ? ' ' + p.year : ''), p: Number(p.price) }));
+  const style = '<style>.sim{display:grid;gap:12px;background:#fff;border:1px solid #E4DED3;border-radius:14px;padding:18px;margin:16px 0}.sim label{font-weight:600;font-size:14px}.sim input,.sim select{width:100%;box-sizing:border-box;height:48px;border:1px solid #C9C1B2;border-radius:10px;padding:0 12px;font:inherit;font-size:16px;background:#fff;color:#14263F}.sim input[type=range]{padding:0;height:34px}.sim .res{background:#F6F3EE;border-radius:12px;padding:14px;display:grid;gap:8px}.sim .res div{display:flex;justify-content:space-between;gap:12px;font-size:15px}.sim .res .big{font-size:22px;font-weight:700;color:#14263F;border-top:1px solid #E4DED3;padding-top:10px}.sim .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}</style>';
+  const body = '<section class="doc"><p class="crumb"><a href="/">Accueil</a></p><h1>Simulateur de paiement échelonné</h1>' +
+    '<p>' + esc(NAME) + ' peut financer votre achat directement, sans banque : jusqu’à 36 mois pour le solde. Choisissez un modèle ou saisissez un prix pour obtenir une estimation.</p>' + style +
+    '<div class="sim"><div><label for="sm">Modèle (facultatif)</label><select id="sm"><option value="">Saisir un prix moi-même</option></select></div>' +
+    '<div class="row2"><div><label for="sp">Prix du produit (€, hors TVA et transport)</label><input id="sp" type="number" inputmode="decimal" min="0" step="100" value="9000"></div><div><label for="st">Transport estimé (€, hors TVA)</label><input id="st" type="number" inputmode="decimal" min="0" step="50" value="0"></div></div>' +
+    '<div class="row2"><div><label for="sv">TVA (%)</label><input id="sv" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="20"></div><div><label for="sn">Durée du solde : <span id="snv">36</span> mois</label><input id="sn" type="range" min="1" max="36" step="1" value="36"></div></div>' +
+    '<div class="res"><div><span>Avant la livraison : transport + TVA</span><b id="r1">–</b></div><div><span>À la livraison : 30 % du prix</span><b id="r2">–</b></div><div><span>Solde à étaler : 70 % du prix + TVA</span><b id="r3">–</b></div><div class="big"><span>Mensualité estimée</span><b id="r4">–</b></div></div></div>' +
+    '<p class="note">Estimation indicative, sans engagement. Calcul : le transport, TVA comprise, est réglé avant la livraison ; mensualité = (70 % du prix + TVA sur le prix) ÷ nombre de mois. Aucun intérêt n’est appliqué : vous payez le prix normal du produit, simplement échelonné. Les conditions exactes, le taux de TVA applicable et l’acceptation de votre dossier sont confirmés dans votre devis et votre contrat. Le produit reste la propriété d’AURIAM HOME jusqu’au paiement complet.</p>' +
+    '<p><a class="btn cu" style="width:auto" href="/#/contact">Demander un devis</a></p>' +
+    '<script>(function(){var L=' + JSON.stringify(list).replace(/</g, '\\u003c') + ';var $=function(i){return document.getElementById(i)};var sm=$("sm");L.forEach(function(x,i){var o=document.createElement("option");o.value=i;o.textContent=x.t+" – "+x.p.toLocaleString("fr-FR")+" €";sm.appendChild(o)});' +
+    'var f=function(n){return (isFinite(n)?n:0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €"};' +
+    'function calc(){var p=Math.max(0,parseFloat($("sp").value)||0),t=Math.max(0,parseFloat($("st").value)||0),v=Math.max(0,parseFloat($("sv").value)||0),n=Math.max(1,parseInt($("sn").value)||1);$("snv").textContent=n;var solde=p*0.7+p*v/100;$("r1").textContent=f(t*(1+v/100));$("r2").textContent=f(p*0.3);$("r3").textContent=f(solde);$("r4").textContent=f(solde/n)+" / mois"}' +
+    'sm.addEventListener("change",function(){if(sm.value!==""){$("sp").value=L[+sm.value].p;calc()}});["sp","st","sv","sn"].forEach(function(i){$(i).addEventListener("input",calc)});calc();})();</script></section>';
+  files.set('/simulateur/index.html', layout({ title: 'Simulateur de paiement échelonné mobil-home | ' + NAME, desc: clip('Estimez vos mensualités pour l’achat d’un mobil-home ou d’une maison conteneur : paiement du solde en plusieurs fois jusqu’à 36 mois, directement avec ' + NAME + '.', 158), path: '/simulateur/', body }));
+  urls.push({ loc: '/simulateur/', pr: '0.7' });
+}
+
 cats.forEach(categoryPage);
 guidesIndex();
 GUIDES.forEach(guidePage);
+faqPage();
+aboutPage();
+simPage();
 legalPage('mentions', 'mentions-legales', 'Mentions légales', 'Mentions légales d’AURIAM HOME, SASU à Périgueux : éditeur, SIREN, SIRET, TVA intracommunautaire, RCS, hébergement et données personnelles.');
 legalPage('cgv', 'conditions-generales-de-vente', 'Conditions générales de vente', 'Conditions générales de vente d’AURIAM HOME : commande, paiement comptant ou échelonné, livraison, installation, garanties.');
 prods.forEach(productPage);
 cataloguePage();
 
 /* ---------- écriture ---------- */
-for (const dir of ['produits', 'categories', 'catalogue', 'guides', 'mentions-legales', 'conditions-generales-de-vente']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
+for (const dir of ['produits', 'categories', 'catalogue', 'guides', 'mentions-legales', 'conditions-generales-de-vente', 'a-propos', 'faq', 'simulateur']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
 for (const [p, content] of files) {
   const f = path.join(ROOT, p);
   fs.mkdirSync(path.dirname(f), { recursive: true });
