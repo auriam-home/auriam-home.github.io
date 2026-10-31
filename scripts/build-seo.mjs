@@ -110,7 +110,7 @@ function layout({ title, desc, path: p, ogImage, body, jsonld = [], type = 'webs
     '<meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(desc) + '"><meta property="og:url" content="' + esc(canon) + '">' +
     '<meta property="og:image" content="' + esc(abs(ogImage || '/og-image.jpg')) + '"><meta name="twitter:card" content="summary_large_image">' + (robots ? '<meta name="robots" content="' + robots + '">' : '') +
     '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">' +
+    '<link rel="stylesheet" href="/css/fonts.css">' +
     '<link rel="stylesheet" href="/css/site.css"><style>.logo{flex-direction:column;align-items:center;gap:3px}.lf-logo{display:block;height:46px;width:auto}.logo span{display:flex;gap:8px;align-items:baseline}.logo b,.logo i{font-size:16px;letter-spacing:3px}.logo i{margin:0;font-weight:500}.seo-nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;font-weight:500}.pd .main{cursor:default}.th a{flex:none;width:76px;height:58px;border-radius:8px;overflow:hidden;background:#fff;border:2px solid transparent;display:block}.crumb{font-size:13px;color:var(--mut)}.crumb a{text-decoration:underline}</style>' +
     [orgFull()].concat(jsonld).map(ld).join('') + '</head><body>' +
     '<header class="top"><div class="wrap"><a class="logo" href="/" aria-label="' + esc(NAME) + '"><img class="lf-logo" src="' + LOGO + '" alt="" width="51" height="46"><span><b>AURIAM</b><i>HOME</i></span></a>' +
@@ -120,13 +120,13 @@ function layout({ title, desc, path: p, ogImage, body, jsonld = [], type = 'webs
 function footer(en = false) {
   const r = footerFr();
   if (!en) return r;
-  return r.replace('Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.', 'Mobile homes, container homes and shipping containers, new and used.').replace('Nous contacter', 'Contact us').replace('<b>Informations</b>', '<b>Information</b>').replace('Livraison et délais', 'Delivery and lead times').replace('Financement et paiement', 'Financing and payment').replace('<a href="/guides/">Guides d’achat</a><br>', '').replace('Simulateur de mensualités', 'Instalment simulator').replace('/simulateur/', '/en/simulator/').replace('Questions fréquentes', 'Frequently asked questions').replace('/faq/', '/en/faq/').replace('>À propos<', '>About us<').replace('/a-propos/', '/en/about/').replace('/mentions-legales/', '/#/mentions').replace('Mentions légales', 'Legal notice').replace('/conditions-generales-de-vente/', '/#/cgv').replace('Conditions générales de vente', 'Terms and conditions of sale');
+  return r.replace('Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.', 'Mobile homes, container homes and shipping containers, new and used.').replace('Nous contacter', 'Contact us').replace('<b>Informations</b>', '<b>Information</b>').replace('Livraison et délais', 'Delivery and lead times').replace('Financement et paiement', 'Financing and payment').replace('<a href="/guides/">Guides d’achat</a><br>', '').replace('Comparer des modèles', 'Compare models').replace('/comparateur/', '/en/compare/').replace('Simulateur de mensualités', 'Instalment simulator').replace('/simulateur/', '/en/simulator/').replace('Questions fréquentes', 'Frequently asked questions').replace('/faq/', '/en/faq/').replace('>À propos<', '>About us<').replace('/a-propos/', '/en/about/').replace('/mentions-legales/', '/#/mentions').replace('Mentions légales', 'Legal notice').replace('/conditions-generales-de-vente/', '/#/cgv').replace('Conditions générales de vente', 'Terms and conditions of sale');
 }
 function footerFr() {
   const wa = waHref('Bonjour AURIAM HOME, je souhaite des informations.');
   return '<footer class="foot"><div class="wrap"><div><img src="' + FOOTLOGO + '" alt="AURIAM HOME" width="120" height="110" style="display:block;height:110px;width:auto;margin-bottom:14px">Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion.</div>' +
     '<div><b>Contact</b>' + esc(CFG.street) + ', ' + esc(CFG.postalCode) + ' ' + esc(CFG.city) + '<br>' + (S.email ? '<a href="mailto:' + esc(S.email) + '">' + esc(S.email) + '</a><br>' : '') + (S.phone ? esc(S.phone) + '<br>' : '') + (wa ? '<a href="' + esc(wa) + '" rel="noopener">WhatsApp</a>' : '<a href="/#/contact">Nous contacter</a>') + '</div>' +
-    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/guides/">Guides d’achat</a><br><a href="/simulateur/">Simulateur de mensualités</a><br><a href="/faq/">Questions fréquentes</a><br><a href="/a-propos/">À propos</a><br><a href="/mentions-legales/">Mentions légales</a><br><a href="/conditions-generales-de-vente/">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
+    '<div><b>Informations</b><a href="/#/livraison">Livraison et délais</a><br><a href="/#/financement">Financement et paiement</a><br><a href="/guides/">Guides d’achat</a><br><a href="/comparateur/">Comparer des modèles</a><br><a href="/simulateur/">Simulateur de mensualités</a><br><a href="/faq/">Questions fréquentes</a><br><a href="/a-propos/">À propos</a><br><a href="/mentions-legales/">Mentions légales</a><br><a href="/conditions-generales-de-vente/">Conditions générales de vente</a></div></div><div class="c">© ' + esc(NAME) + ' – SASU</div></footer>';
 }
 function card(p) {
   const ph = photos(p)[0];
@@ -475,6 +475,33 @@ function simPageEn() {
   files.set('/404.html', layout({ title: 'Page introuvable | ' + NAME, desc: 'Cette page est introuvable.', path: '/404.html', body: b, robots: 'noindex' }));
 }
 
+/* ---------- comparateur de modèles (FR + EN) ---------- */
+function comparePage(en) {
+  const T = en
+    ? { home: 'Home', h1: 'Compare models', intro: 'Choose two or three models to compare their size, price and equipment side by side.', pick: 'Choose a model', none: 'None', rows: ['Condition', 'Year', 'Dimensions', 'Surface', 'Bedrooms', 'Price (excl. VAT and delivery)', 'Equipment'], on: 'On request', view: 'View this model', quote: 'Request a quote', cur: '€', new_: 'New', used: 'Used', loc: 'en-GB', empty: 'Pick at least two models to compare.', tt: 'Compare mobile homes and container homes | ' + NAME, dd: 'Compare mobile homes and container homes side by side: size, price, equipment. ' + NAME + ', ' + CFG.city + '.', path: '/en/compare/' }
+    : { home: 'Accueil', h1: 'Comparer des modèles', intro: 'Choisissez deux ou trois modèles pour comparer côte à côte leurs dimensions, leur prix et leurs équipements.', pick: 'Choisir un modèle', none: 'Aucun', rows: ['État', 'Année', 'Dimensions', 'Surface', 'Chambres', 'Prix (hors TVA et livraison)', 'Équipements'], on: 'Sur demande', view: 'Voir ce modèle', quote: 'Demander un devis', cur: '€', new_: 'Neuf', used: 'Occasion', loc: 'fr-FR', empty: 'Choisissez au moins deux modèles à comparer.', tt: 'Comparateur de mobil-homes et maisons conteneurs | ' + NAME, dd: 'Comparez côte à côte des mobil-homes et maisons conteneurs : dimensions, prix, équipements. ' + NAME + ', ' + CFG.city + '.', path: '/comparateur/' };
+  const g = (p, k) => (en ? ((p[k + '_en'] && String(p[k + '_en']).trim()) ? p[k + '_en'] : txt(p, k)) : txt(p, k));
+  const gl = (p, k) => { const v = en && Array.isArray(p[k + '_en']) && p[k + '_en'].length ? p[k + '_en'] : list(p, k); return v; };
+  const data = prods.map((p) => ({
+    t: g(p, 'title'), u: pUrl(p), img: (photos(p)[0] || {}).thumb || '', c: p.category === 'neuve' ? T.new_ : p.category === 'occasion' ? T.used : catName(p.category),
+    y: p.year || '', d: dims(p), s: p.surface_m2 ? fr(p.surface_m2) + ' m²' : '', b: p.bedrooms || '', p: p.price ? Number(p.price) : null, e: gl(p, 'equipment').slice(0, 8)
+  }));
+  const style = '<style>.cmp{display:grid;gap:12px;margin:16px 0}.cmp label{font-weight:600;font-size:14px}.cmp select{width:100%;box-sizing:border-box;height:48px;border:1px solid #C9C1B2;border-radius:10px;padding:0 12px;font:inherit;font-size:16px;background:#fff;color:#14263F}#cr{overflow-x:auto}#cr table{border-collapse:collapse;width:100%;min-width:430px;background:#fff;border:1px solid #E4DED3;border-radius:12px}#cr th,#cr td{padding:8px 8px;border-bottom:1px solid #E4DED3;text-align:left;vertical-align:top;font-size:14px}#cr th{width:84px;color:#4C5A70;font-weight:600}#cr td img{width:100%;height:80px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px}#cr td ul{margin:0;padding-left:16px}#cr .pr{font-weight:700;font-size:16px;color:#14263F}#cr .nm{font-weight:700;color:#14263F}</style>';
+  const body = '<section class="doc"><p class="crumb"><a href="/">' + T.home + '</a></p><h1>' + T.h1 + '</h1><p>' + T.intro + '</p>' + style +
+    '<div class="cmp"><div><label for="c1">1</label><select id="c1"></select></div><div><label for="c2">2</label><select id="c2"></select></div><div><label for="c3">3</label><select id="c3"></select></div></div><div id="cr"></div>' +
+    '<p style="margin-top:18px"><a class="btn cu" style="width:auto" href="/#/contact">' + T.quote + '</a></p>' +
+    '<script>(function(){var D=' + JSON.stringify(data).replace(/</g, '\\u003c') + ',R=' + JSON.stringify(T.rows) + ',T=' + JSON.stringify({ pick: T.pick, none: T.none, on: T.on, view: T.view, empty: T.empty, loc: T.loc }) + ';var $=function(i){return document.getElementById(i)};' +
+    'function esc(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c]})}' +
+    '["c1","c2","c3"].forEach(function(id,k){var s=$(id);var o=document.createElement("option");o.value="";o.textContent=k<2?T.pick:T.none;s.appendChild(o);D.forEach(function(x,i){var op=document.createElement("option");op.value=i;op.textContent=x.t+(x.y?" "+x.y:"");s.appendChild(op)});s.addEventListener("change",draw)});' +
+    'var q=new URLSearchParams(location.search);["c1","c2","c3"].forEach(function(id,k){var v=q.get("m"+(k+1));if(v!==null&&D[+v])$(id).value=v});if(!$("c1").value&&D.length>0)$("c1").value=0;if(!$("c2").value&&D.length>1)$("c2").value=1;' +
+    'function draw(){var sel=["c1","c2","c3"].map(function(id){return $(id).value}).filter(function(v){return v!==""}).map(function(v){return D[+v]});if(sel.length<2){$("cr").innerHTML="<p>"+T.empty+"</p>";return}' +
+    'var h="<table><tr><th></th>";sel.forEach(function(x){h+="<td>"+(x.img?"<img src=\\""+esc(x.img)+"\\" alt=\\"\\">":"")+"<div class=nm>"+esc(x.t)+"</div><a href=\\""+esc(x.u)+"\\">"+T.view+"</a></td>"});h+="</tr>";' +
+    'var f=[function(x){return x.c},function(x){return x.y},function(x){return x.d},function(x){return x.s},function(x){return x.b},function(x){return x.p==null?T.on:"<span class=pr>"+x.p.toLocaleString(T.loc)+" €</span>"},function(x){return x.e.length?"<ul>"+x.e.map(function(e){return "<li>"+esc(e)+"</li>"}).join("")+"</ul>":""}];' +
+    'f.forEach(function(fn,i){if(!sel.some(function(x){var v=fn(x);return v!==""&&v!=null}))return;h+="<tr><th>"+esc(R[i])+"</th>";sel.forEach(function(x){var v=fn(x);h+="<td>"+(i==5||i==6?v:esc(v))+"</td>"});h+="</tr>"});$("cr").innerHTML=h+"</table>"}draw();})();</script></section>';
+  files.set(T.path + 'index.html', layout({ en, title: T.tt, desc: clip(T.dd, 158), path: T.path, body, alt: { fr: '/comparateur/', en: '/en/compare/' } }));
+  urls.push({ loc: T.path, pr: en ? '0.4' : '0.6' });
+}
+
 cats.forEach(categoryPage);
 guidesIndex();
 GUIDES.forEach(guidePage);
@@ -484,13 +511,15 @@ simPage();
 faqPageEn();
 aboutPageEn();
 simPageEn();
+comparePage(false);
+comparePage(true);
 legalPage('mentions', 'mentions-legales', 'Mentions légales', 'Mentions légales d’AURIAM HOME, SASU à Périgueux : éditeur, SIREN, SIRET, TVA intracommunautaire, RCS, hébergement et données personnelles.');
 legalPage('cgv', 'conditions-generales-de-vente', 'Conditions générales de vente', 'Conditions générales de vente d’AURIAM HOME : commande, paiement comptant ou échelonné, livraison, installation, garanties.');
 prods.forEach(productPage);
 cataloguePage();
 
 /* ---------- écriture ---------- */
-for (const dir of ['produits', 'categories', 'catalogue', 'guides', 'mentions-legales', 'conditions-generales-de-vente', 'a-propos', 'faq', 'simulateur', 'en/faq', 'en/about', 'en/simulator']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
+for (const dir of ['produits', 'categories', 'catalogue', 'guides', 'mentions-legales', 'conditions-generales-de-vente', 'a-propos', 'faq', 'simulateur', 'comparateur', 'en/compare', 'en/faq', 'en/about', 'en/simulator']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
 for (const [p, content] of files) {
   const f = path.join(ROOT, p);
   fs.mkdirSync(path.dirname(f), { recursive: true });
@@ -508,6 +537,7 @@ try {
     const og = '<meta property="og:site_name" content="' + esc(NAME) + '"><meta property="og:type" content="website"><meta property="og:locale" content="fr_FR"><meta property="og:title" content="AURIAM HOME – Maisons mobiles et conteneurs, neufs et d’occasion"><meta property="og:description" content="Maisons mobiles, maisons conteneurs et conteneurs maritimes, neufs et d’occasion. Livraison en Europe, paiement échelonné, devis gratuit."><meta property="og:url" content="' + SITE + '/"><meta property="og:image" content="' + SITE + '/og-image.jpg"><meta name="twitter:card" content="summary_large_image">';
     const block = '<!--org-start-->' + ld(orgFull()) + og + '<link rel="canonical" href="' + SITE + '/"><!--org-end-->';
     t = t.replace(/<!--org-start-->[\s\S]*?<!--org-end-->\n?/, '');
+    t = t.replace(/<link rel="preconnect"[^>]*fonts\.g[^>]*>\s*/g, '').replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis[^>]*>/, '<link rel="stylesheet" href="css/fonts.css">');
     if (t.includes('</head>')) { t = t.replace('</head>', block + '\n</head>'); fs.writeFileSync(ix, t); }
   }
 } catch (e) { console.log('index.html non modifié : ' + e.message); }
