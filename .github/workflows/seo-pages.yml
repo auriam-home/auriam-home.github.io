@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.name "auriam-seo-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -A produits categories catalogue guides mentions-legales conditions-generales-de-vente a-propos faq simulateur en/faq en/about en/simulator sitemap.xml robots.txt index.html
+          git add -A produits categories catalogue guides mentions-legales conditions-generales-de-vente a-propos faq simulateur en/faq en/about en/simulator 404.html sitemap.xml robots.txt index.html
           if git diff --cached --quiet; then
             echo "Aucun changement."
           else
