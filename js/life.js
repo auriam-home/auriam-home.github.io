@@ -253,8 +253,8 @@
   /* lien vers les guides d'achat (menu + bas de page), en français */
   function guideLinks() {
     var en = document.documentElement.lang === 'en';
-    var L = en ? [['/en/simulator/', 'Instalment simulator'], ['/en/faq/', 'Frequently asked questions'], ['/en/about/', 'About us']]
-      : [['/guides/', 'Guides d’achat'], ['/simulateur/', 'Simulateur de mensualités'], ['/faq/', 'Questions fréquentes'], ['/a-propos/', 'À propos']];
+    var L = en ? [['/en/compare/', 'Compare models'], ['/en/simulator/', 'Instalment simulator'], ['/en/faq/', 'Frequently asked questions'], ['/en/about/', 'About us']]
+      : [['/guides/', 'Guides d’achat'], ['/comparateur/', 'Comparer des modèles'], ['/simulateur/', 'Simulateur de mensualités'], ['/faq/', 'Questions fréquentes'], ['/a-propos/', 'À propos']];
     var f = app.querySelector('.foot a[href="#/financement"]');
     var m = app.querySelector('.ov .dr a.l[href="#/financement"]');
     var pf = f, pm = m;
