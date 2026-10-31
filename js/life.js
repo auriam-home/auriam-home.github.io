@@ -253,17 +253,21 @@
   /* lien vers les guides d'achat (menu + bas de page), en français */
   function guideLinks() {
     if (document.documentElement.lang === 'en') return;
+    var L = [['/guides/', 'Guides d’achat'], ['/simulateur/', 'Simulateur de mensualités'], ['/faq/', 'Questions fréquentes'], ['/a-propos/', 'À propos']];
     var f = app.querySelector('.foot a[href="#/financement"]');
-    if (f && !app.querySelector('.foot a[href="/guides/"]')) {
-      var br = document.createElement('br'), a = document.createElement('a'); a.href = '/guides/'; a.textContent = 'Guides d’achat';
-      f.nextSibling ? f.parentNode.insertBefore(br, f.nextSibling) : f.parentNode.appendChild(br);
-      br.parentNode.insertBefore(a, br.nextSibling);
-    }
     var m = app.querySelector('.ov .dr a.l[href="#/financement"]');
-    if (m && !app.querySelector('.ov .dr a.l[href="/guides/"]')) {
-      var l = document.createElement('a'); l.className = 'l'; l.href = '/guides/'; l.textContent = 'Guides d’achat';
-      m.parentNode.insertBefore(l, m.nextSibling);
-    }
+    var pf = f, pm = m;
+    L.forEach(function (x) {
+      if (f && !app.querySelector('.foot a[href="' + x[0] + '"]')) {
+        var br = document.createElement('br'), a = document.createElement('a'); a.href = x[0]; a.textContent = x[1];
+        pf.nextSibling ? pf.parentNode.insertBefore(br, pf.nextSibling) : pf.parentNode.appendChild(br);
+        br.parentNode.insertBefore(a, br.nextSibling); pf = a;
+      } else if (f) { var e = app.querySelector('.foot a[href="' + x[0] + '"]'); if (e) pf = e; }
+      if (m && !app.querySelector('.ov .dr a.l[href="' + x[0] + '"]')) {
+        var l = document.createElement('a'); l.className = 'l'; l.href = x[0]; l.textContent = x[1];
+        pm.parentNode.insertBefore(l, pm.nextSibling); pm = l;
+      } else if (m) { var e2 = app.querySelector('.ov .dr a.l[href="' + x[0] + '"]'); if (e2) pm = e2; }
+    });
   }
 
   /* bouton e-mail flottant, au-dessus de WhatsApp */
