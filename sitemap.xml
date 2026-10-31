@@ -18,6 +18,8 @@
   <url><loc>https://auriam-home.github.io/en/faq/</loc><priority>0.5</priority></url>
   <url><loc>https://auriam-home.github.io/en/about/</loc><priority>0.4</priority></url>
   <url><loc>https://auriam-home.github.io/en/simulator/</loc><priority>0.4</priority></url>
+  <url><loc>https://auriam-home.github.io/comparateur/</loc><priority>0.6</priority></url>
+  <url><loc>https://auriam-home.github.io/en/compare/</loc><priority>0.4</priority></url>
   <url><loc>https://auriam-home.github.io/mentions-legales/</loc><priority>0.4</priority></url>
   <url><loc>https://auriam-home.github.io/conditions-generales-de-vente/</loc><priority>0.4</priority></url>
   <url><loc>https://auriam-home.github.io/produits/riviera/</loc><priority>0.8</priority></url>
