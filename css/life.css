@@ -175,7 +175,9 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-3d{position:relative;background:radial-gradient(90% 70% at 50% 38%,#2a4a75 0%,#1d3556 45%,#14263F 100%);color:#fff;padding:18px 16px 30px;overflow:hidden}
 .lf-3d:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#C98A3D 30%,#E0A55A 50%,#C98A3D 70%,transparent)}
 .lf-3d:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(180deg,rgba(15,28,46,0),rgba(15,28,46,.55));pointer-events:none}
-.lf-3d .b3w{max-width:760px;margin:0 auto;text-align:center}
+.lf-3d .b3bg{position:absolute;inset:-14px;background-size:cover;background-position:50% 72%;filter:blur(2px) saturate(.9);z-index:0}
+.lf-3d .b3bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,38,63,.80) 0%,rgba(20,38,63,.62) 45%,rgba(20,38,63,.86) 100%)}
+.lf-3d .b3w{position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center}
 .lf-3d .b3k{font-size:12px;font-weight:600;letter-spacing:2.4px;text-transform:uppercase;color:#E0A55A;margin:0}
 .lf-3d .st{position:relative;height:310px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .lf-3d .sc{position:absolute;left:50%;top:76%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(-17deg) scale(var(--k,1))}
