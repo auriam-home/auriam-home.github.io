@@ -213,8 +213,8 @@
     if (STB) return; STB = 1;
     var C = window.AURIAM_CONFIG; if (!(window.supabase && C)) return;
     try {
-      window.supabase.createClient(C.url, C.key).from('products').select('id,status,price').then(function (r) {
-        if (r && !r.error && r.data) { STA = {}; MINP = null; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; var pr = Number(x.price); if (pr > 0 && x.status !== 'sold' && (MINP === null || pr < MINP)) MINP = pr; }); status(); }
+      window.supabase.createClient(C.url, C.key).from('products').select('id,status,price,category').then(function (r) {
+        if (r && !r.error && r.data) { STA = {}; MINP = null; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; var pr = Number(x.price); if (pr > 0 && x.status !== 'sold' && (x.category === 'neuve' || x.category === 'occasion') && (MINP === null || pr < MINP)) MINP = pr; }); status(); }
       }, function () {});
     } catch (e) {}
   }
@@ -255,7 +255,7 @@
   function heroFrom() {
     var t = app.querySelector('.hero .t'); if (!t || MINP === null) return;
     var en = document.documentElement.lang === 'en';
-    var txt = (en ? 'From ' : 'À partir de ') + MINP.toLocaleString(en ? 'en-GB' : 'fr-FR') + ' €' + (en ? ' · excl. VAT and delivery' : ' · hors TVA et livraison');
+    var txt = (en ? 'Mobile homes from ' : 'Maisons mobiles à partir de ') + MINP.toLocaleString(en ? 'en-GB' : 'fr-FR') + ' €' + (en ? ' · excl. VAT and delivery' : ' · hors TVA et livraison');
     var e = t.querySelector('.lf-from');
     if (!e) { e = document.createElement('p'); e.className = 'lf-from'; var cta = t.querySelector('.cta'); cta ? t.insertBefore(e, cta) : t.appendChild(e); }
     if (e.textContent !== txt) e.textContent = txt;
