@@ -208,18 +208,19 @@
 
 
   /* statut des produits (Disponible / Réservé / Vendu) + bandeau livraison */
-  var STA = null, STB = 0;
+  var STA = null, STB = 0, MINP = null;
   function loadSta() {
     if (STB) return; STB = 1;
     var C = window.AURIAM_CONFIG; if (!(window.supabase && C)) return;
     try {
-      window.supabase.createClient(C.url, C.key).from('products').select('id,status').then(function (r) {
-        if (r && !r.error && r.data) { STA = {}; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; }); status(); }
+      window.supabase.createClient(C.url, C.key).from('products').select('id,status,price').then(function (r) {
+        if (r && !r.error && r.data) { STA = {}; MINP = null; r.data.forEach(function (x) { STA[String(x.id)] = x.status || 'available'; var pr = Number(x.price); if (pr > 0 && x.status !== 'sold' && (MINP === null || pr < MINP)) MINP = pr; }); status(); }
       }, function () {});
     } catch (e) {}
   }
   function status() {
     loadSta(); if (!STA) return;
+    heroFrom();
     var en = document.documentElement.lang === 'en';
     var N = en ? { available: 'Available', reserved: 'Reserved', sold: 'Sold' } : { available: 'Disponible', reserved: 'Réservé', sold: 'Vendu' };
     function pill(s) { var e = document.createElement('span'); e.className = 'lf-sp lf-' + s; e.textContent = N[s] || N.available; return e; }
@@ -245,6 +246,44 @@
         bn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h13v10H1zM14 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>' +
           (en ? '<b>Delivery across Europe.</b> 7 to 10 days (dedicated) or 2 to 3 weeks (grouped). Outside the EU on quote.' : '<b>Livraison partout en Europe.</b> 7 à 10 jours (dédiée) ou 2 à 3 semaines (groupée). Hors UE sur devis.') + '</span>';
         note.parentNode.insertBefore(bn, note.nextSibling);
+      }
+    }
+  }
+
+
+  /* « À partir de … » sous le texte de l'accueil */
+  function heroFrom() {
+    var t = app.querySelector('.hero .t'); if (!t || MINP === null) return;
+    var en = document.documentElement.lang === 'en';
+    var txt = (en ? 'From ' : 'À partir de ') + MINP.toLocaleString(en ? 'en-GB' : 'fr-FR') + ' €' + (en ? ' · excl. VAT and delivery' : ' · hors TVA et livraison');
+    var e = t.querySelector('.lf-from');
+    if (!e) { e = document.createElement('p'); e.className = 'lf-from'; var cta = t.querySelector('.cta'); cta ? t.insertBefore(e, cta) : t.appendChild(e); }
+    if (e.textContent !== txt) e.textContent = txt;
+  }
+
+  /* vidéo : remontée juste après la présentation, avant avis et FAQ */
+  function moveVideo() {
+    var v = app.querySelector('.vids'); if (!v) return;
+    var vs = v.closest('.sec'), why = app.querySelector('.why'); if (!vs || !why) return;
+    var ws = why.closest('.sec'); if (!ws || ws === vs) return;
+    if (ws.nextElementSibling !== vs) ws.parentNode.insertBefore(vs, ws.nextSibling);
+  }
+
+  /* titre du pied de page + texte d'introduction en liste */
+  function tidy() {
+    var en = document.documentElement.lang === 'en';
+    Array.prototype.forEach.call(app.querySelectorAll('.foot b'), function (b) {
+      if (b.textContent === 'Informations légales' || b.textContent === 'Legal information') b.textContent = en ? 'Information' : 'Informations';
+    });
+    var p = app.querySelector('.sec p.sub');
+    if (p && !p.__lf && p.nextElementSibling && p.nextElementSibling.classList.contains('why')) {
+      p.__lf = 1;
+      var ss = p.textContent.split(/(?<=[.!?])\s+/).filter(Boolean);
+      if (ss.length >= 3) {
+        var ul = document.createElement('ul'); ul.className = 'lf-ul';
+        ss.slice(1).forEach(function (x) { var li = document.createElement('li'); li.textContent = x; ul.appendChild(li); });
+        p.textContent = ss[0]; p.style.marginBottom = '10px';
+        p.parentNode.insertBefore(ul, p.nextSibling);
       }
     }
   }
@@ -560,6 +599,7 @@
       var a = Math.abs(d), op = Math.max(0, Math.min(1, (fe - a) / (fe - 1)));
       t.style.transform = 'translateX(' + (d * (w < 520 ? 150 : 250)).toFixed(1) + 'px) translateZ(' + (-a * 90).toFixed(1) + 'px) rotateY(' + (-d * 28).toFixed(2) + 'deg) scale(' + (1 - Math.min(a, 1.5) * 0.06).toFixed(3) + ')';
       t.style.opacity = op.toFixed(3);
+      var lb = t.querySelector('span'); if (lb) lb.style.opacity = Math.max(0, 1 - a * 1.8).toFixed(2);
       t.style.zIndex = String(Math.round(100 - a * 10));
       t.style.filter = a > 0.05 ? 'brightness(' + (1 - Math.min(a, 1) * 0.22).toFixed(2) + ')' : 'none';
       t.style.pointerEvents = op < 0.2 ? 'none' : '';
@@ -692,7 +732,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks(); tidy(); moveVideo();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
