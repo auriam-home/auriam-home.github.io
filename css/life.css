@@ -172,14 +172,14 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .hero .cta:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(260px circle at var(--gx,30%) var(--gy,0%),rgba(255,255,255,.2),rgba(255,255,255,0) 62%)}
 
 /* bande 3D */
-.lf-3d{position:relative;background:radial-gradient(90% 70% at 50% 38%,#2a4a75 0%,#1d3556 45%,#14263F 100%);color:#fff;padding:18px 16px 30px;overflow:hidden}
+.lf-3d{position:relative;background:radial-gradient(90% 70% at 50% 38%,#2a4a75 0%,#1d3556 45%,#14263F 100%);color:#fff;padding:6px 16px 28px;overflow:hidden}
 .lf-3d:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#C98A3D 30%,#E0A55A 50%,#C98A3D 70%,transparent)}
 .lf-3d:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(180deg,rgba(15,28,46,0),rgba(15,28,46,.55));pointer-events:none}
 .lf-3d .b3bg{position:absolute;inset:-14px;background-size:cover;background-position:50% 72%;filter:blur(2px) saturate(.9);z-index:0}
-.lf-3d .b3bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,38,63,.80) 0%,rgba(20,38,63,.62) 45%,rgba(20,38,63,.86) 100%)}
+.lf-3d .b3bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,38,63,.62) 0%,rgba(20,38,63,.40) 45%,rgba(20,38,63,.80) 100%)}
 .lf-3d .b3w{position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center}
 .lf-3d .b3k{font-size:12px;font-weight:600;letter-spacing:2.4px;text-transform:uppercase;color:#E0A55A;margin:0}
-.lf-3d .st{position:relative;height:310px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.lf-3d .st{position:relative;height:272px;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .lf-3d .sc{position:absolute;left:50%;top:76%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(-17deg) scale(var(--k,1))}
 .lf-3d .ro{position:absolute;left:0;top:0;transform-style:preserve-3d}
 .lf-3d .g{position:absolute;left:0;top:0;transform-style:preserve-3d}
@@ -198,7 +198,7 @@ details[open]{box-shadow:0 8px 22px rgba(20,38,63,.08)}
 .lf-3d .b3d button:before{content:"";position:absolute;inset:-12px}
 .lf-3d .b3d button.on{background:#C98A3D;transform:scale(1.35)}
 .lf-3d .b3a{display:inline-block;color:#E0A55A;font-weight:600;font-size:14px;text-decoration:none;border-bottom:1px solid rgba(224,165,90,.5);padding-bottom:2px}
-@media(max-width:700px){.lf-3d .st{height:270px}}
+@media(max-width:700px){.lf-3d .st{height:226px}}
 
 /* cartes qui s'inclinent */
 @media (prefers-reduced-motion:no-preference){
