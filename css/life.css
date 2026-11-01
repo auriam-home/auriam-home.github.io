@@ -320,3 +320,17 @@ details[open] summary:after{content:"\2212"}
 .hero .cta .btn.line{background:transparent;border:1.5px solid rgba(255,255,255,.85);color:#fff}
 .hero .cta .btn.line:hover{background:rgba(255,255,255,.12)}
 @media(max-width:520px){.hero .cta{flex-direction:column;gap:12px}.hero .cta .btn{width:100%;min-width:0}}
+
+/* === THEME SOMBRE (début) === */
+.dr.lf-dr{background:#0E1B2E;color:#EEF1F5;box-shadow:-18px 0 40px rgba(0,0,0,.45)}
+.lf-langrow{background:rgba(255,255,255,.04);border-bottom-color:rgba(255,255,255,.12)}
+.lf-langrow .lang{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22)}
+.lf-langrow .lang button.on{background:var(--cu);color:#14263F}
+.lf-tl li b{background:#0F1C2E;border-color:rgba(255,255,255,.2);color:#fff}
+.c3b{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.22)}
+.c3b:hover{background:var(--cu);color:#14263F}
+.lf-cb,.lf-dl{background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border-color:rgba(255,255,255,.13);color:#EEF1F5}
+.lf-dl{border-left-color:#C98A3D}
+.lf-cb input{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22);color:#fff}
+.lf-find .lf-map{border-color:rgba(255,255,255,.15);background:#0F1C2E}
+/* === THEME SOMBRE (fin) === */
