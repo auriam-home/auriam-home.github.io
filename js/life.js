@@ -431,12 +431,14 @@
     var s = document.createElement('section');
     s.className = 'lf-3d';
     s.setAttribute('aria-label', l === 'en' ? 'Our models in 3D' : 'Nos modèles en 3D');
-    s.innerHTML = '<div class="b3w">' +
+    s.innerHTML = '<div class="b3bg"></div><div class="b3w">' +
       '<div class="st"><div class="fl"></div><div class="sc"><div class="sd"></div><div class="ro"></div></div></div>' +
       '<p class="b3n" aria-live="polite"></p><div class="b3d">' + M3[l].map(function (n, k) { return '<button type="button" data-k="' + k + '" aria-label="' + n + '"></button>'; }).join('') + '</div>' +
       '<a class="b3a" href="#/all">' + (l === 'en' ? 'See all products' : 'Voir tous les produits') + ' →</a></div>';
     var st = app.querySelector('.lf-strip');
     (st || hero).parentNode.insertBefore(s, (st || hero).nextSibling);
+    var hi = hero.querySelector('.im img');
+    if (hi && hi.getAttribute('src')) s.querySelector('.b3bg').style.backgroundImage = 'url("' + hi.getAttribute('src').replace(/"/g, '%22') + '")';
     b3.built = -1;
     b3io && b3io.observe(s);
   }
