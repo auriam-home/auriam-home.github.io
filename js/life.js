@@ -220,7 +220,6 @@
   }
   function status() {
     loadSta(); if (!STA) return;
-    heroFrom();
     var en = document.documentElement.lang === 'en';
     var N = en ? { available: 'Available', reserved: 'Reserved', sold: 'Sold' } : { available: 'Disponible', reserved: 'Réservé', sold: 'Vendu' };
     function pill(s) { var e = document.createElement('span'); e.className = 'lf-sp lf-' + s; e.textContent = N[s] || N.available; return e; }
@@ -732,7 +731,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); panel(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks(); tidy(); moveVideo();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks(); tidy(); moveVideo();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
