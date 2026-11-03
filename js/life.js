@@ -138,6 +138,25 @@
     c.scrollLeft = on.offsetLeft - (c.clientWidth - on.offsetWidth) / 2;
   }
 
+  /* fiche produit : flèches et compteur de photos (le balayage existe plus bas) */
+  function galleryFx() {
+    var g = app.querySelector('.pd .g'); if (!g) return;
+    var main = g.querySelector('img.main'), ths = g.querySelectorAll('.th button');
+    if (!main || ths.length < 2 || g.querySelector('.lf-gw')) return;
+    var en = document.documentElement.lang === 'en', n = ths.length, cur = 0;
+    Array.prototype.forEach.call(ths, function (b, i) { if (b.classList.contains('on')) cur = i; });
+    function go(d) { ths[(cur + d + n) % n].click(); }
+    var w = document.createElement('div'); w.className = 'lf-gw';
+    main.parentNode.insertBefore(w, main); w.appendChild(main);
+    var c = document.createElement('span'); c.className = 'lf-cnt'; c.setAttribute('aria-hidden', 'true'); c.textContent = (cur + 1) + ' / ' + n;
+    w.appendChild(c);
+    [['‹', -1, en ? 'Previous photo' : 'Photo précédente', 'lf-gp'], ['›', 1, en ? 'Next photo' : 'Photo suivante', 'lf-gn']].forEach(function (x) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'lf-ga ' + x[3]; b.textContent = x[0]; b.setAttribute('aria-label', x[2]);
+      b.addEventListener('click', function (e) { e.stopPropagation(); go(x[1]); });
+      w.appendChild(b);
+    });
+  }
+
   /* le bouton WhatsApp flottant se met en retrait tant que l'accueil est à l'écran */
   var heroEl = null, heroIO = null, heroVis = false;
   function heroWatch() {
@@ -733,7 +752,7 @@
   });
 
   function scan() {
-    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks(); tidy(); moveVideo();
+    strip(); band3d(); xfilters(); timeline(); counters(); catRing(); tlWatch(); quoteBtn(); gallery(); logos(); heroWatch(); mailBtn(); findus(); status(); menu(); guideLinks(); tidy(); moveVideo(); galleryFx();
     if (!io) return;
     var list = app.querySelectorAll(SEL), n = 0;
     Array.prototype.forEach.call(list, function (el) {
