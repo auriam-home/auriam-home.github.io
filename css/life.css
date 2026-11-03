@@ -320,3 +320,12 @@ details[open] summary:after{content:"\2212"}
 .hero .cta .btn.line{background:transparent;border:1.5px solid rgba(255,255,255,.85);color:#fff}
 .hero .cta .btn.line:hover{background:rgba(255,255,255,.12)}
 @media(max-width:520px){.hero .cta{flex-direction:column;gap:12px}.hero .cta .btn{width:100%;min-width:0}}
+
+/* fiche produit : galerie */
+.lf-gw{position:relative}
+.lf-cnt{position:absolute;right:12px;top:12px;z-index:2;background:rgba(20,38,63,.78);color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;pointer-events:none}
+.lf-ga{position:absolute;top:50%;margin-top:-22px;z-index:2;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.88);color:#14263F;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.22);cursor:pointer;padding:0 0 3px}
+.lf-gp{left:10px}.lf-gn{right:10px}
+.lf-ga:active{transform:scale(.94)}
+.lf-gw .main{touch-action:pan-y}
+@media (prefers-reduced-motion:no-preference){.lf-gw .main{animation:lf-fade .4s ease}}
