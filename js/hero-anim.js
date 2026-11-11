@@ -316,6 +316,8 @@
   var styled = false;
   function build() {
     var app = document.getElementById('app'); if (!app) return;
+    if (!styled) { var hs = document.createElement('style'); hs.textContent = '.lf-tl,.lf-ct,.pc{display:none!important}'; document.head.appendChild(hs); styled = true; }
+    return;
     var tl = app.querySelector('.lf-tl'); if (!tl || app.querySelector('.pc')) return;
     if (!styled) { var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); styled = true; }
     var en = document.documentElement.lang === 'en', D = en ? EN : FR, i;
