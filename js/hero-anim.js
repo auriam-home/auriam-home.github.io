@@ -130,6 +130,22 @@
     HA.logo.setAttribute('transform', 'translate(1060,330) scale(' + lp(.7, 1, f.li) + ') translate(-1060,-330)');
     HA.root.style.opacity = 1 - seg(t, S + 12.1, S + 13.0);
   };
+  function words(hero) {
+    var t = hero.querySelector('.t'), h = t && t.querySelector('h1');
+    if (!t || !h || t.classList.contains('hx')) return;
+    var parts = (h.textContent || '').trim().split(/\s+/), out = '', i;
+    for (i = 0; i < parts.length; i++) {
+      out += '<span class="hw"><i style="animation-delay:' + (0.55 + i * 0.13).toFixed(2) + 's"></i></span> ';
+    }
+    h.innerHTML = out;
+    var is = h.querySelectorAll('.hw>i');
+    for (i = 0; i < is.length; i++) is[i].textContent = parts[i];
+    t.classList.add('hx');
+  }
+  function fixStrip() {
+    var st = document.querySelector('#app .lf-strip'); if (!st) return;
+    st.style.marginTop = '-' + st.offsetHeight + 'px';
+  }
   function vb() { return window.innerWidth < 1000 ? '700 170 780 450' : '0 0 1440 640'; }
   function mount() {
     var hero = document.querySelector('#app .hero');
@@ -139,8 +155,25 @@
     var css = document.createElement('style');
     css.textContent = '.hero .ha{position:absolute;inset:0;z-index:1;background:' + NAVY + ';overflow:hidden;pointer-events:none}' +
       '.hero .ha svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}' +
-      '@media(max-width:1000px){.hero .ha svg{height:240px;top:auto;bottom:0}.hero .wrap{padding-bottom:270px!important}}';
+      '@media(max-width:1000px){.hero .ha svg{height:240px;top:auto;bottom:0}.hero .wrap{padding-bottom:270px!important}}' +
+      '@media (prefers-reduced-motion:no-preference){' +
+      '.hero .t.hx>.k{animation:hxk 1.1s .15s cubic-bezier(.2,.7,.2,1) both!important}' +
+      '@keyframes hxk{from{opacity:0;letter-spacing:.9em}to{opacity:1}}' +
+      '.hero .t.hx>h1{animation:none!important;opacity:1!important}' +
+      '.hx .hw{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .16em;margin-bottom:-.16em}' +
+      '.hx .hw>i{display:inline-block;font-style:normal;opacity:0;transform:translateY(118%) rotate(5deg);transform-origin:0 100%;animation:hxw .9s cubic-bezier(.2,.8,.2,1) forwards}' +
+      '@keyframes hxw{to{opacity:1;transform:none}}' +
+      '.hero .t.hx>p{animation:hxp 1.1s 1.7s cubic-bezier(.2,.7,.2,1) both!important}' +
+      '@keyframes hxp{from{opacity:0;filter:blur(8px);transform:translateY(18px)}to{opacity:1;filter:blur(0);transform:none}}' +
+      '.hero .t.hx>.cta{animation:none!important;opacity:1!important}' +
+      '.hx .cta>*{animation:hxb .8s cubic-bezier(.2,.9,.3,1.25) both}' +
+      '.hx .cta>*:nth-child(1){animation-delay:2.4s}.hx .cta>*:nth-child(2){animation-delay:2.65s}' +
+      '@keyframes hxb{from{opacity:0;transform:translateY(18px) scale(.93)}to{opacity:1;transform:none}}}' +
+      '.lf-strip{position:relative;z-index:3;background:rgba(20,38,63,.34)!important;-webkit-backdrop-filter:blur(9px) saturate(1.2);backdrop-filter:blur(9px) saturate(1.2);border-top:1px solid rgba(255,255,255,.2)!important;border-bottom:1px solid rgba(255,255,255,.12)}' +
+      '.lf-strip *{text-shadow:0 1px 8px rgba(10,20,36,.55)}';
     document.head.appendChild(css);
+    HA.css = css;
+    words(hero);
     var d = document.createElement('div'); d.className = 'ha';
     d.innerHTML = '<svg viewBox="' + vb() + '" preserveAspectRatio="xMaxYMax meet" font-family="Poppins,Arial,sans-serif"><defs><pattern id="hgr" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity=".07"/></pattern></defs><g id="hd"></g><image id="hlg" href="logo-symbole.webp" x="1000" y="270" width="120" height="120" opacity="0"/></svg>';
     hero.insertBefore(d, hero.firstChild);
@@ -155,10 +188,15 @@
     })(performance.now());
   }
   function init() {
-    mount();
-    var app = document.getElementById('app'); if (!app) return;
-    var mo = new MutationObserver(function () { if (played) mo.disconnect(); else mount(); });
+    mount(); fixStrip();
+    var raf = 0, app = document.getElementById('app'); if (!app) return;
+    var mo = new MutationObserver(function () {
+      if (!played) mount();
+      if (!raf) raf = requestAnimationFrame(function () { raf = 0; fixStrip(); });
+    });
     mo.observe(app, { childList: true, subtree: true });
+    addEventListener('resize', fixStrip);
+    addEventListener('load', fixStrip);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
