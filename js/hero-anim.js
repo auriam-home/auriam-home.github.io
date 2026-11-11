@@ -446,6 +446,8 @@
       else if (/question|faq/.test(t)) e = en ? 'Good to know' : 'Bon à savoir';
       if (e) h.insertAdjacentHTML('beforebegin', '<span class="eb">' + e + '</span>');
     }
+    var cg = app.querySelector('footer.foot a[href="#/cgv"]');
+    if (cg && !app.querySelector('footer.foot a[href="/confidentialite/"]')) cg.insertAdjacentHTML('afterend', '<br><a href="/confidentialite/">' + (en ? 'Privacy &amp; cookies (FR)' : 'Confidentialité et cookies') + '</a>');
     var band = app.querySelector('.band');
     if (band && !band.querySelector('.h3d')) { band.insertAdjacentHTML('afterbegin', house()); spin(band.querySelector('.h3d')); }
     var tm = app.querySelector('#tm');
