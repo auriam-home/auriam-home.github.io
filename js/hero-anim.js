@@ -368,6 +368,7 @@
     '.card{border:0;border-radius:16px;box-shadow:0 1px 2px rgba(20,38,63,.06),0 12px 28px rgba(20,38,63,.08)}' +
     '.card .cb{padding:16px 18px 20px}.card h3{font-size:17px;letter-spacing:.03em}' +
     '.card .pr{color:var(--cu-d);font-size:22px;letter-spacing:-.01em}' +
+    '@media(min-width:900px){.hero .im img{animation:none!important;transform:none!important;will-change:auto;filter:url(#lkSharp) contrast(1.06) saturate(1.08);image-rendering:auto}}' +
     '@media(max-width:700px){#app .sec>.grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}' +
     '#app .sec>.grid>.card{padding:10px!important;border-radius:16px!important;background:#fff!important}' +
     '#app .sec>.grid>.card .ph{aspect-ratio:4/3!important;border-radius:8px!important;overflow:hidden}' +
@@ -418,8 +419,16 @@
       '<div class="f rf" style="width:256px;height:64px;margin:-32px 0 0 -128px;transform:translate3d(0,-50px,-25px) rotateX(-62.5deg)"></div>';
     return '<div class="h3d" aria-hidden="true"><div class="scn"><div class="shd"></div><div class="hs">' + wall + ends + roof + '</div></div></div>';
   }
+  function sharpDef() {
+    if (document.getElementById('lkSharpSvg')) return;
+    var d = document.createElement('div'); d.id = 'lkSharpSvg'; d.setAttribute('aria-hidden', 'true');
+    d.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+    d.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0"><filter id="lkSharp" color-interpolation-filters="sRGB"><feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.5 0 -0.5 3 -0.5 0 -0.5 0"/></filter></svg>';
+    document.body.appendChild(d);
+  }
   function build() {
     var app = document.getElementById('app'); if (!app) return;
+    sharpDef();
     if (!styled) { var s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); styled = true; }
     var en = document.documentElement.lang === 'en', hs = app.querySelectorAll('.sec>h2');
     for (var i = 0; i < hs.length; i++) {
