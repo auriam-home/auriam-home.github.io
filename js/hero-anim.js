@@ -144,6 +144,12 @@
   }
   function fixStrip() {
     var st = document.querySelector('#app .lf-strip'); if (!st) return;
+    var b = document.querySelector('#app .lf-3d');
+    if (b) {
+      if (st.parentNode !== b) { b.appendChild(st); b.classList.add('hs'); }
+      st.style.marginTop = '0';
+      return;
+    }
     st.style.marginTop = '-' + st.offsetHeight + 'px';
   }
   function vb() { return window.innerWidth < 1000 ? '700 170 780 450' : '0 0 1440 640'; }
@@ -170,6 +176,7 @@
       '.hx .cta>*:nth-child(1){animation-delay:2.4s}.hx .cta>*:nth-child(2){animation-delay:2.65s}' +
       '@keyframes hxb{from{opacity:0;transform:translateY(18px) scale(.93)}to{opacity:1;transform:none}}}' +
       '.lf-strip{position:relative;z-index:3;background:rgba(20,38,63,.34)!important;-webkit-backdrop-filter:blur(9px) saturate(1.2);backdrop-filter:blur(9px) saturate(1.2);border-top:1px solid rgba(255,255,255,.2)!important;border-bottom:1px solid rgba(255,255,255,.12)}' +
+      '.lf-3d>.lf-strip{position:absolute;left:0;right:0;bottom:0;z-index:2}.lf-3d.hs{padding-bottom:84px!important}' +
       '.lf-strip *{text-shadow:0 1px 8px rgba(10,20,36,.55)}';
     document.head.appendChild(css);
     HA.css = css;
