@@ -73,30 +73,69 @@
   }
   function products(t) {
     var s = '', e1 = seg(t, 4.0, 4.6), e2 = seg(t, 7.9, 8.5);
-    if (t >= TP[0] && e1 < 1) s += '<g transform="translate(' + (-1500 * e1 * e1) + ',0)">' + prod(0, t, TP[0]) + '</g>';
+    if (t >= TP[0] && e1 < 1) s += '<g transform="translate(' + (-1500 * e1 * e1) + ',0)">' + prod(2, t, TP[0]) + '</g>';
     if (t >= TP[1] && e2 < 1) s += '<g transform="translate(' + (-1500 * e2 * e2) + ',0)">' + prod(1, t, TP[1]) + '</g>';
     return s;
   }
-  function vehicle(t) {
-    var sc = lp(1, .5, seg(t, S + 5.6, S + 6.5)), u = cl((t - S - 6.5) / 1.5, 0, 1), tx = 760 * u * u;
-    var cab = seg(t, S + 5.8, S + 6.4), s = '';
-    s += '<g transform="translate(' + tx + ',0) translate(1060,516) scale(' + sc + ') translate(-1060,-516)">';
-    s += prod(2, t, TP[2]);
-    if (t > S + 5.2) {
-      s += '<g opacity="' + cab + '" transform="translate(' + (40 + (1 - cab) * 40) + ',0)">' +
-        '<rect x="1372" y="500" width="130" height="16" rx="3" fill="#2a3142"/>' +
-        '<path d="M1380 500 V380 Q1380 360 1400 360 H1450 Q1470 360 1482 390 L1506 440 V500 Z" fill="#f2f2f2"/>' +
-        '<path d="M1420 380 H1452 L1478 436 H1420 Z" fill="#9fd0ef"/><rect x="1380" y="468" width="126" height="10" fill="' + CU + '"/></g>';
-      var wa = t * 560;
-      [780, 1330, 1460, 1510].forEach(function (cx) {
-        var op = (cx > 1400 ? cab : 1);
-        s += '<g opacity="' + op + '"><circle cx="' + cx + '" cy="490" r="28" fill="#15161c"/><circle cx="' + cx + '" cy="490" r="14" fill="#9aa0ab"/><g transform="rotate(' + wa + ' ' + cx + ' 490)"><rect x="' + (cx - 2) + '" y="466" width="4" height="48" fill="#4b4f5a"/></g></g>';
-      });
-    }
+  function wheel(cx, cy, r, a) {
+    var g = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#14151b"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .62) + '" fill="#aeb4be"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .2) + '" fill="#e6e9ee"/>';
+    for (var i = 0; i < 5; i++) { var q = (a + i * 72) * Math.PI / 180; g += '<circle cx="' + (cx + Math.cos(q) * r * .42).toFixed(1) + '" cy="' + (cy + Math.sin(q) * r * .42).toFixed(1) + '" r="' + (r * .07).toFixed(1) + '" fill="#5a606b"/>'; }
+    return g;
+  }
+  function truck(t, u, vis) {
+    var a = t * 520, s = '', i, mv = u > 0 && u < 1;
+    s += '<g opacity="' + vis + '">';
+    // ombre
+    s += '<ellipse cx="1130" cy="584" rx="470" ry="8" fill="#000" opacity=".28"/>';
+    // semi-remorque surbaissée
+    s += '<rect x="700" y="516" width="700" height="14" fill="#3a3f4a"/><rect x="700" y="530" width="700" height="8" fill="#2a3142"/>' +
+      '<rect x="1296" y="538" width="7" height="40" fill="#4b4f5a"/><rect x="1288" y="574" width="23" height="5" fill="#4b4f5a"/>' +
+      '<rect x="730" y="528" width="172" height="12" rx="4" fill="#2a3142"/>';
+    for (i = 0; i < 3; i++) s += wheel(760 + i * 60, 556, 26, a);
+    s += '<rect x="908" y="548" width="5" height="28" fill="#0e0f13"/><rect x="692" y="512" width="10" height="34" fill="#c93a2e"/><rect x="692" y="524" width="10" height="6" fill="#fff"/>';
+    for (i = 0; i < 6; i++) s += '<circle cx="' + (930 + i * 80) + '" cy="523" r="3" fill="#f0a830"/>';
     s += '</g>';
+    // chargement : la maison mobile sanglée
+    s += prod(0, t, TP[2]);
+    s += '<g opacity="' + vis + '">';
+    s += '<rect x="846" y="272" width="9" height="244" fill="#f0a830" opacity=".9"/><rect x="1262" y="272" width="9" height="244" fill="#f0a830" opacity=".9"/><rect x="843" y="500" width="15" height="8" rx="2" fill="#2a3142"/><rect x="1259" y="500" width="15" height="8" rx="2" fill="#2a3142"/>';
+    // tracteur routier
+    s += '<rect x="1330" y="530" width="232" height="16" fill="#2a3142"/><rect x="1340" y="520" width="72" height="10" fill="#4b4f5a"/>' +
+      '<rect x="1378" y="338" width="8" height="196" rx="3" fill="#aab0ba"/>' +
+      '<path d="M1394 532 V404 Q1394 382 1416 382 H1478 Q1498 382 1508 402 L1540 470 Q1550 486 1550 504 V532 Z" fill="#f4f5f7"/>' +
+      '<path d="M1396 382 V352 Q1396 342 1410 342 H1452 L1470 382 Z" fill="#dfe3e9"/>' +
+      '<path d="M1428 398 H1478 Q1490 398 1497 412 L1520 458 H1428 Z" fill="#8fc4e6"/><path d="M1436 404 L1456 404 L1440 452 H1436Z" fill="#fff" opacity=".35"/>' +
+      '<path d="M1428 462 V528" stroke="#c4c9d1" stroke-width="2" fill="none"/><rect x="1434" y="488" width="18" height="5" rx="2" fill="#9aa0ab"/>' +
+      '<rect x="1394" y="478" width="156" height="8" fill="#d99a45"/><rect x="1394" y="506" width="156" height="26" fill="#14263F"/>' +
+      '<rect x="1538" y="466" width="12" height="36" fill="#c9ced6"/><rect x="1538" y="474" width="12" height="3" fill="#6b7280"/><rect x="1538" y="484" width="12" height="3" fill="#6b7280"/>' +
+      '<rect x="1539" y="458" width="11" height="10" rx="3" fill="#fff2c0"/><rect x="1536" y="520" width="28" height="12" rx="3" fill="#2a3142"/>' +
+      '<rect x="1500" y="416" width="9" height="30" rx="3" fill="#14263F"/>';
+    s += '<circle cx="1432" cy="336" r="6" fill="#f5a623" opacity="' + (.5 + .5 * Math.sin(t * 14)) + '"/>';
+    s += '<rect x="1398" y="525" width="104" height="12" rx="5" fill="#2a3142"/>';
+    s += wheel(1414, 556, 28, a) + wheel(1466, 556, 28, a) + wheel(1520, 556, 28, a);
+    // fumée d'échappement
+    for (i = 0; i < 6; i++) {
+      var ag = (t * 1.3 + i / 6) % 1, dr = mv ? 90 : 36;
+      s += '<circle cx="' + (1382 - ag * dr).toFixed(1) + '" cy="' + (334 - ag * 62).toFixed(1) + '" r="' + (6 + ag * 20).toFixed(1) + '" fill="#cfd5de" opacity="' + (.5 * (1 - ag)).toFixed(2) + '"/>';
+    }
+    // phares et poussière en roulant
+    if (mv) {
+      s += '<path d="M1550 462 L1720 430 L1720 510 Z" fill="#ffe9a8" opacity=".14"/>';
+      for (i = 0; i < 5; i++) {
+        var d = (t * 2.2 + i / 5) % 1;
+        s += '<circle cx="' + (700 - d * 150).toFixed(1) + '" cy="' + (572 - d * 18).toFixed(1) + '" r="' + (8 + d * 22).toFixed(1) + '" fill="#e7dfd0" opacity="' + (.5 * (1 - d)).toFixed(2) + '"/>';
+      }
+    }
+    return s + '</g>';
+  }
+  function vehicle(t) {
+    var sc = lp(1, .66, seg(t, S + 5.6, S + 6.5)), u = cl((t - S - 6.5) / 1.6, 0, 1), tx = 800 * u * u;
+    var vis = seg(t, S + 5.7, S + 6.4), yb = (u > 0 && u < 1) ? Math.sin(t * 40) * 1.6 : 0, s = '';
+    if (vis <= 0) return prod(0, t, TP[2]);
+    s += '<g transform="translate(' + tx + ',' + yb + ') translate(1060,582) scale(' + sc + ') translate(-1060,-582)">' + truck(t, u, vis) + '</g>';
     if (u > 0 && u < 1) {
       for (var i = 0; i < 6; i++) {
-        var y = 430 + i * 14, L = 120 + (i * 53) % 90, x = 1060 + tx - 190 - ((i * 37 + t * 900) % 80);
+        var y = 440 + i * 20, L = 130 + (i * 53) % 100, x = 1060 + tx - 330 - ((i * 37 + t * 900) % 80);
         s += '<rect x="' + (x - L) + '" y="' + y + '" width="' + L + '" height="3" rx="1.5" fill="#fff" opacity="' + (.5 * Math.sin(Math.PI * u)) + '"/>';
       }
     }
@@ -125,7 +164,7 @@
     if (!HA.svg) return;
     var f = finale(t), a = HA.dyn;
     var grid = '<rect x="-2200" y="-200" width="5600" height="1100" fill="url(#hgr)" opacity="' + (.9 * seg(t, 0, .8)) + '"/>';
-    a.innerHTML = grid + '<g>' + products(t) + vehicle(t) + '</g>' + band(t) + f.s;
+    a.innerHTML = grid + '<g>' + products(t) + '</g>' + band(t) + '<g>' + vehicle(t) + '</g>' + f.s;
     HA.logo.setAttribute('opacity', f.li);
     HA.logo.setAttribute('transform', 'translate(1060,330) scale(' + lp(.7, 1, f.li) + ') translate(-1060,-330)');
     HA.root.style.opacity = 1 - seg(t, S + 12.1, S + 13.0);
