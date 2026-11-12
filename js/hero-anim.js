@@ -492,7 +492,7 @@
 /* AURIAM HOME – accueil moderne : photo d'en-tête révélée après l'animation, promesse + chiffres, grande photo, parc d'exposition. */
 (function () {
   'use strict';
-  var IMG = { hero: 'photos/maison-hero.jpg', big: 'photos/maison-grande.jpg', park: 'photos/parc-expo.jpg' };
+  var IMG = { hero: 'photos/maison-hero.jpg?v=2', big: 'photos/maison-grande.jpg?v=2', park: 'photos/parc-expo.jpg?v=2' };
   var T = {
     fr: {
       k1: 'Notre promesse', h1: 'Un espace de vie confortable, <em>sans stress</em>, du premier appel jusqu’à l’installation.',
@@ -572,7 +572,7 @@
     for (i = 0; i < secs.length; i++) if (secs[i].querySelector('.grid')) { feat = secs[i]; break; }
     var anchor = feat || p;
     var f = document.createElement('section'); f.className = 'mo-full mo-rv mo-f';
-    f.innerHTML = '<img src="' + IMG.big + '" alt="" loading="lazy" onerror="this.closest(\'.mo-f\').remove()"><div class="cap"><span class="mo-k">' + D.k2 + '</span><h2>' + D.h2 + '</h2></div>';
+    f.innerHTML = '<img src="' + IMG.big + '" alt="" loading="lazy" onerror="if(!this.dataset.r){this.dataset.r=1;var u=this;setTimeout(function(){u.src=\'photos/maison-grande.jpg?r=\'+Date.now()},1500)}else{this.closest(\'.mo-f\').remove()}"><div class="cap"><span class="mo-k">' + D.k2 + '</span><h2>' + D.h2 + '</h2></div>';
     var x = document.createElement('section'); x.className = 'mo mo-x';
     x.innerHTML = '<div class="mw mo-sp"><div class="mo-im mo-rv"><img src="' + IMG.park + '" alt="" loading="lazy" onerror="var g=this.closest(\'.mo-sp\');g.style.display=\'block\';this.closest(\'.mo-im\').remove()"></div><div class="mo-rv"><span class="mo-k">' + D.k3 + '</span><h2>' + D.h3 + '</h2><p>' + D.p3 + '</p><a class="mo-l" href="#/contact">' + D.l3 + '</a></div></div>';
     anchor.parentNode.insertBefore(f, anchor.nextSibling);
