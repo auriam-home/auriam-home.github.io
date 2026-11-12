@@ -537,7 +537,7 @@
   var styled = false, io = null;
   function reveal(el) {
     var rv = el.querySelectorAll('.mo-rv');
-    if (!('IntersectionObserver' in window)) { for (var i = 0; i < rv.length; i++) rv[i].classList.add('on'); return; }
+    if (!('IntersectionObserver' in window)) { el.classList.add('on'); for (var i = 0; i < rv.length; i++) rv[i].classList.add('on'); return; }
     if (!io) io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
         if (!e.isIntersecting) return; io.unobserve(e.target); e.target.classList.add('on');
@@ -551,6 +551,7 @@
       });
     }, { threshold: .15 });
     for (var m = 0; m < rv.length; m++) io.observe(rv[m]);
+    if (el.classList.contains('mo-rv')) io.observe(el);
   }
   function build() {
     var app = document.getElementById('app'); if (!app) return;
