@@ -662,140 +662,71 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
-/* AURIAM HOME – scène 3D d'accueil (conteneur, maison mobile, modules) qui évolue au défilement. FR/EN. */
+/* AURIAM HOME – fond 3D (conteneur, maison mobile, modules) qui évolue tout au long de la page, derrière tout le site. */
 (function () {
   'use strict';
-  var T = {
-    fr: {
-      s: [
-        { id: 'c', n: '01', k: 'Conteneurs maritimes', h: 'Robustes <em>par nature.</em>',
-          p: 'Neufs ou d’occasion, en conteneur maritime simple ou en maison conteneur aménagée. Choisissez une teinte et regardez le conteneur changer en direct.',
-          chips: ['20 pieds · ≈ 6 m', '40 pieds · ≈ 12 m', 'Maisons conteneurs'], sw: 'Teinte', b: 'Voir les produits' },
-        { id: 'm', n: '02', k: 'Maisons mobiles', h: 'Le confort, <em>sur roues.</em>',
-          p: 'Des maisons mobiles prêtes à vivre, pour une résidence principale, secondaire ou un projet locatif.',
-          chips: ['Neuves & d’occasion', 'Livraison en Europe', 'Paiement échelonné'], b: 'Voir les produits' },
-        { id: 'o', n: '03', k: 'Structures modulaires', h: 'Assemblez. <em>Agrandissez.</em>',
-          p: 'Des modules qui s’assemblent pour créer un logement, un bureau ou une extension, et qui évoluent avec vos besoins.',
-          chips: ['Assemblables', 'Évolutifs', 'Particuliers & pros'], b: 'Voir les produits' },
-        { id: 'z', n: '', k: 'Contact', h: 'Votre projet <em>commence ici.</em>',
-          p: 'Devis gratuit, livraison en Europe et paiement échelonné. Parlons de votre projet.',
-          chips: [], b: 'Demander un devis', href: '#/contact' }
-      ], scroll: 'Faites défiler ↓'
-    },
-    en: {
-      s: [
-        { id: 'c', n: '01', k: 'Shipping containers', h: 'Tough <em>by nature.</em>',
-          p: 'New or used, as a plain shipping container or a fitted container home. Pick a colour and watch the container change live.',
-          chips: ['20 ft · ≈ 6 m', '40 ft · ≈ 12 m', 'Container homes'], sw: 'Colour', b: 'See products' },
-        { id: 'm', n: '02', k: 'Mobile homes', h: 'Comfort, <em>on wheels.</em>',
-          p: 'Ready-to-live-in mobile homes for a main residence, a second home or a rental project.',
-          chips: ['New & used', 'Delivery across Europe', 'Instalment payments'], b: 'See products' },
-        { id: 'o', n: '03', k: 'Modular structures', h: 'Assemble. <em>Expand.</em>',
-          p: 'Modules that fit together to make a home, an office or an extension, and grow with your needs.',
-          chips: ['Assemblable', 'Expandable', 'Private & business'], b: 'See products' },
-        { id: 'z', n: '', k: 'Contact', h: 'Your project <em>starts here.</em>',
-          p: 'Free quote, delivery across Europe and instalment payments. Let’s talk about your project.',
-          chips: [], b: 'Request a quote', href: '#/contact' }
-      ], scroll: 'Scroll ↓'
-    }
-  };
-  var COLORS = [['#FF6B2C', 'Orange'], ['#2EC4F1', 'Cyan'], ['#FFD23F', 'Jaune'], ['#ffffff', 'Blanc'], ['#2b2f36', 'Anthracite']];
+  var D = document, H = D.documentElement;
   var CSS = '' +
-    '.nv{position:relative;clip-path:inset(0);background:#07142B;color:#fff;font-family:"Bricolage Grotesque",Poppins,system-ui,sans-serif;--g:#FF6B2C;--g2:#FFB36B;--m:#b4c0d8;--ln:#1f3560}' +
-    '.nv.gl{background:transparent}' +
-    '.nv .nv-cv{position:sticky;top:0;display:block;width:100%;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0;pointer-events:none}' +
-    '.nv .st{position:relative;z-index:1;min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:96px 6vw 60px}' +
-    '.nv .st.r{justify-content:flex-end}' +
-    '.nv .st:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(60% 70% at 15% 55%,rgba(255,107,44,.22),transparent 70%),radial-gradient(50% 60% at 92% 25%,rgba(46,196,241,.18),transparent 70%)}' +
-    '.nv .st.r:before{background:radial-gradient(60% 70% at 85% 55%,rgba(46,196,241,.22),transparent 70%),radial-gradient(50% 60% at 8% 25%,rgba(255,107,44,.18),transparent 70%)}' +
-    '.nv .p{max-width:520px}' +
-    '.nv .big{display:block;font-size:clamp(80px,16vw,200px);font-weight:800;line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(255,107,44,.6);margin:0 0 10px;letter-spacing:-.04em}' +
-    '.nv .eb{display:block;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--g);margin:0 0 16px;font-weight:500}' +
-    '.nv h2{margin:0 0 20px;font-size:clamp(34px,5.4vw,66px);font-weight:800;letter-spacing:-.035em;line-height:.98;color:#fff}' +
-    '.nv h2 em{font-style:normal;font-weight:300;background:linear-gradient(90deg,#FFB36B,#FF6B2C 55%,#2EC4F1);-webkit-background-clip:text;background-clip:text;color:transparent}' +
-    '.nv .lead,.nv h2{text-shadow:0 2px 18px rgba(7,20,43,.7)}.nv .lead{margin:0 0 26px;color:var(--m);font-size:clamp(15px,1.7vw,19px);font-weight:300;line-height:1.55;max-width:46ch}' +
-    '.nv .chips{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}' +
-    '.nv .chips span{border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:8px 16px;font-size:13px;background:rgba(7,20,43,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
-    '.nv .sw{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--m);margin:0 0 26px}' +
-    '.nv .sw button{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer;padding:0;transition:.25s}' +
-    '.nv .sw button.on,.nv .sw button:hover{border-color:var(--g2);transform:scale(1.15)}' +
-    '.nv .nb{display:inline-block;padding:14px 28px;border-radius:99px;font:500 15px "Bricolage Grotesque",Poppins,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#FF9A3C,#FF4D1F);transition:.3s}' +
-    '.nv .nb:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(255,107,44,.4)}' +
-    '.nv .hint{position:absolute;left:6vw;bottom:34px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--m);animation:nvbob 2s ease-in-out infinite}' +
-    '@keyframes nvbob{50%{transform:translateY(8px)}}' +
-    '.nv .nvr{opacity:0;transform:translateY(34px);transition:opacity .9s,transform 1s cubic-bezier(.2,.7,.2,1)}' +
-    '.nv .nvr.in{opacity:1;transform:none}' +
-    '@media(max-width:820px){.nv .st,.nv .st.r{align-items:flex-end;justify-content:flex-start;padding-bottom:64px}.nv .p{margin:0 -6vw;padding:64px 6vw 0;max-width:none;background:linear-gradient(transparent,rgba(7,20,43,.93) 30%)}.nv .big{font-size:72px}.nv .hint{display:none}}' +
-    '@media(prefers-reduced-motion:reduce){.nv .nvr{transition:none;opacity:1;transform:none}.nv .hint{animation:none}}';
+    'html.nv{--bg:#07142B;--card:rgba(11,26,56,.66);--line:rgba(255,255,255,.14);--txt:#fff;--mut:#b9c4da;--cu:#FF6B2C;--cu-d:#FF9A3C;color-scheme:dark}' +
+    'html.nv body{background:#07142B;color:#fff}' +
+    '#nvcv{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;display:block;pointer-events:none;opacity:0;transition:opacity 1.2s}' +
+    'html.nv #nvcv{opacity:1}' +
+    '#nvveil{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(7,20,43,.12),rgba(7,20,43,.32))}' +
+    'html.nv #app{position:relative;z-index:1}' +
+    /* fonds clairs -> verre sombre */
+    'html.nv .top,html.nv .top.sc{background:rgba(7,20,43,.72)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.1)!important;box-shadow:none!important}' +
+    'html.nv .logo b{color:#fff}html.nv .logo i{color:#FF9A3C}' +
+    'html.nv .ib{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff}' +
+    'html.nv .hero{background:transparent}' +
+    'html.nv .card,html.nv .why div,html.nv details,html.nv .spec,html.nv .steps div,html.nv .empty,html.nv .tem,html.nv .chip,html.nv select,html.nv .tnav button,html.nv .sbox .in,html.nv .lang button,html.nv .th button,html.nv .lf-find,html.nv .mo-st>div{background:rgba(11,26,56,.55)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(10px);border-color:rgba(255,255,255,.14)!important;color:#fff}' +
+    'html.nv #app .sec>.grid>.card{background:rgba(11,26,56,.6)!important;color:#fff;box-shadow:none}html.nv .card h3,html.nv .card .pr{color:#fff}html.nv .card .pr{color:#FF9A3C}' +
+    'html.nv .lf-cb,html.nv .doc,html.nv .pd .i,html.nv .lf-find{background:rgba(11,26,56,.62)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:16px;color:#fff}' +
+    'html.nv .doc,html.nv .pd .i{padding:22px 20px 24px}html.nv .lf-find,html.nv .lf-cb{padding:20px}' +
+    'html.nv .lf-cb input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff}html.nv .lf-cb input::placeholder{color:#9fb0cb}html.nv .lf-cbm{color:#FF9A3C}html.nv .lf-find .lf-map{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.06)}' +
+    'html.nv .mo-l,html.nv .lf-find a:not(.btn){color:#fff}html.nv .mo-l{border-bottom-color:#FF6B2C}' +
+    'html.nv .chip.on,html.nv .lang button.on{background:linear-gradient(135deg,#FF9A3C,#FF4D1F)!important;border-color:transparent!important;color:#fff}' +
+    'html.nv .btn.cu{background:linear-gradient(135deg,#FF9A3C,#FF4D1F)!important;color:#fff!important}' +
+    'html.nv .btn.cu:hover{box-shadow:0 12px 34px rgba(255,107,44,.4)}' +
+    'html.nv .btn.line.dk{border-color:rgba(255,255,255,.5);color:#fff}' +
+    'html.nv .badge,html.nv .steps b,html.nv .hero .k{color:#FF9A3C}' +
+    'html.nv .sub,html.nv .why span,html.nv details p,html.nv .card .sp,html.nv .note,html.nv .back,html.nv .spec span:first-child,html.nv .load,html.nv .res small,html.nv .empty{color:#b9c4da}' +
+    'html.nv .desc,html.nv .doc p,html.nv .doc li,html.nv .steps span,html.nv .tem blockquote,html.nv .lst{color:#dbe3f1}' +
+    'html.nv .tem .who{color:#fff}' +
+    'html.nv .spec div{border-bottom-color:rgba(255,255,255,.1)}' +
+    'html.nv .sec h2,html.nv .pt,html.nv .doc h1,html.nv .doc h2,html.nv .pd h1,html.nv .hero h1,html.nv .mo-big,html.nv .mo-f h2{text-shadow:0 2px 20px rgba(7,20,43,.65)}' +
+    'html.nv .mo-big,html.nv .mo-st b,html.nv .mo-x h2{color:#fff}' +
+    'html.nv .mo-k{color:#FF9A3C}html.nv .mo-big em{color:#FF9A3C}' +
+    'html.nv .mo-st,html.nv .mo-st>div{border-color:rgba(255,255,255,.14)}' +
+    'html.nv .mo-st span,html.nv .mo-x p{color:#b9c4da}' +
+    'html.nv .foot{background:rgba(7,20,43,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}' +
+    'html.nv .foot .c{border-top-color:rgba(255,255,255,.12)}' +
+    'html.nv .band,html.nv .lf-3d,html.nv .lf-strip{background:rgba(11,26,56,.7)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}' +
+    'html.nv .lf-3d{background:radial-gradient(90% 70% at 50% 38%,rgba(42,74,117,.55),rgba(11,26,56,.7))!important}' +
+    'html.nv .res,html.nv .sbox input{color:#fff}html.nv .sbox input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}' +
+    'html.nv .card .ph,html.nv .main{background:rgba(255,255,255,.06)}' +
+    'html.nv .tem .av{background:#FF6B2C}' +
+    'html.nv select{background-image:none}html.nv option{color:#07142B}' +
+    '@media(prefers-reduced-motion:reduce){#nvcv{transition:none}}';
 
-  var cv = null, styled = false, ren = null, started = false, tintFn = null, curColor = '#FF6B2C', gl = false;
+  function hasGL() { try { var c = D.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; } }
+  function off() { H.classList.remove('nv'); var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }
 
-  function lang() { return (document.documentElement.lang || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'fr'; }
-  function html() {
-    var D = T[lang()], out = '', i, j, s;
-    for (i = 0; i < D.s.length; i++) {
-      s = D.s[i];
-      out += '<section class="st' + (i % 2 ? ' r' : '') + '" data-s="' + s.id + '"><div class="p">' +
-        (s.n ? '<span class="big nvr">' + s.n + '</span>' : '') + '<span class="eb nvr">' + s.k + '</span><h2 class="nvr">' + s.h + '</h2><p class="lead nvr">' + s.p + '</p>';
-      if (s.chips.length) { out += '<div class="chips nvr">'; for (j = 0; j < s.chips.length; j++) out += '<span>' + s.chips[j] + '</span>'; out += '</div>'; }
-      if (s.sw) {
-        out += '<div class="sw nvr">' + s.sw;
-        for (j = 0; j < COLORS.length; j++) out += '<button type="button" data-c="' + COLORS[j][0] + '" class="' + (COLORS[j][0] === curColor ? 'on' : '') + '" style="background:' + COLORS[j][0] + '" aria-label="' + COLORS[j][1] + '"></button>';
-        out += '</div>';
-      }
-      out += '<a class="nb nvr" href="' + (s.href || '#/all') + '">' + s.b + '</a></div>' + (i === 0 ? '<div class="hint">' + D.scroll + '</div>' : '') + '</section>';
-    }
-    return out;
+  function start() {
+    if (!hasGL()) return;
+    var st = D.createElement('style'); st.textContent = CSS; D.head.appendChild(st);
+    var cv = D.createElement('canvas'); cv.id = 'nvcv'; cv.setAttribute('aria-hidden', 'true');
+    var vl = D.createElement('div'); vl.id = 'nvveil';
+    D.body.insertBefore(vl, D.body.firstChild); D.body.insertBefore(cv, D.body.firstChild);
+    H.classList.add('nv');
+    if (window.THREE) return scene(cv);
+    var s = D.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload = function () { scene(cv); }; s.onerror = off; D.head.appendChild(s);
   }
-  function reveal(root) {
-    var els = root.querySelectorAll('.nvr'), i;
-    if (!('IntersectionObserver' in window)) { for (i = 0; i < els.length; i++) els[i].classList.add('in'); return; }
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-    }, { threshold: .12 });
-    for (i = 0; i < els.length; i++) io.observe(els[i]);
-  }
-  function build() {
-    var app = document.getElementById('app'); if (!app) return;
-    var hero = app.querySelector('.hero'); if (!hero) return;
-    var anchor = app.querySelector('.mo-p') || app.querySelector('.lf-3d') || hero;
-    var nv = app.querySelector('.nv');
-    if (nv) { if (nv.previousElementSibling !== anchor) anchor.parentNode.insertBefore(nv, anchor.nextSibling); return; }
-    if (!styled) { var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); styled = true; }
-    if (!document.getElementById('nvf')) {
-      var l = document.createElement('link'); l.id = 'nvf'; l.rel = 'stylesheet';
-      l.href = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;400;500;800&display=swap'; document.head.appendChild(l);
-    }
-    nv = document.createElement('div'); nv.className = 'nv' + (gl ? ' gl' : ''); nv.setAttribute('data-lang', lang());
-    nv.innerHTML = html();
-    if (cv) nv.insertBefore(cv, nv.firstChild);
-    anchor.parentNode.insertBefore(nv, anchor.nextSibling);
-    reveal(nv); boot();
-  }
-  function langSync() {
-    var nv = document.querySelector('.nv');
-    if (nv && nv.getAttribute('data-lang') !== lang()) { nv.remove(); build(); }
-  }
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('.nv .sw button'); if (!b) return;
-    curColor = b.getAttribute('data-c'); if (tintFn) tintFn(curColor);
-    var all = document.querySelectorAll('.nv .sw button'); for (var i = 0; i < all.length; i++) all[i].classList.toggle('on', all[i] === b);
-  });
 
-  /* ---------- scène 3D ---------- */
-  function boot() {
-    if (started) return; started = true;
-    cv = document.createElement('canvas'); cv.className = 'nv-cv'; cv.setAttribute('aria-hidden', 'true');
-    var nv = document.querySelector('.nv'); if (nv) nv.insertBefore(cv, nv.firstChild);
-    if (window.THREE) return scene();
-    var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    s.onload = scene; s.onerror = function () { if (cv && cv.parentNode) cv.parentNode.removeChild(cv); };
-    document.head.appendChild(s);
-  }
-  function scene() {
-    var T3 = window.THREE; if (!T3) return;
-    try { ren = new T3.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { if (cv.parentNode) cv.parentNode.removeChild(cv); return; }
-    gl = true; var n0 = document.querySelector('.nv'); if (n0) n0.classList.add('gl');
+  function scene(cv) {
+    var T3 = window.THREE, ren;
+    if (!T3) return off();
+    try { ren = new T3.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { return off(); }
     var small = Math.min(innerWidth, innerHeight) < 700;
     ren.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2));
     ren.shadowMap.enabled = !small; ren.shadowMap.type = T3.PCFSoftShadowMap;
@@ -808,21 +739,20 @@
     var gr = new T3.Mesh(new T3.PlaneGeometry(140, 140), new T3.MeshStandardMaterial({ color: 0x0c2147, roughness: .9 })); gr.rotation.x = -Math.PI / 2; gr.receiveShadow = true; sc.add(gr);
     var gh = new T3.GridHelper(140, 70, 0x1d3a70, 0x12274d); gh.position.y = .01; sc.add(gh);
     function bx(w, h, dd, c, x, y, z, o) { o = o || {}; var m = new T3.Mesh(new T3.BoxGeometry(w, h, dd), o.mat || new T3.MeshStandardMaterial({ color: c, roughness: o.r == null ? .6 : o.r, metalness: o.m || 0, emissive: o.e || 0, emissiveIntensity: o.ei || 1 })); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
-    var cMat = new T3.MeshStandardMaterial({ color: 0xff6b2c, roughness: .45, metalness: .5 }), rMat = cMat.clone();
-    tintFn = function (c) { cMat.color.set(c); rMat.color.set(c).multiplyScalar(.72); };
+    var cMat = new T3.MeshStandardMaterial({ color: 0xff6b2c, roughness: .45, metalness: .5 }), rMat = cMat.clone(); rMat.color.multiplyScalar(.72);
     var C = new T3.Group(); C.add(bx(4, 1.5, 1.6, 0, 0, .75, 0, { mat: cMat }));
     for (var i = 0; i < 16; i++) { var x = -1.875 + i * .25;[-1, 1].forEach(function (s) { C.add(bx(.06, 1.36, .05, 0, x, .75, s * .81, { mat: rMat })); }); }
     C.add(bx(1.3, .6, .04, 0x222222, 0, .8, .84, { e: 0xffc880, ei: .9 }));
     [-1, 1].forEach(function (a) { C.add(bx(.04, 1.3, .7, 0, 2.02, .75, a * .38, { mat: rMat })); [-1, 1].forEach(function (b) { C.add(bx(.1, 1.52, .1, 0xffb36b, a * 2, .75, b * .8, { m: .8, r: .3 })); }); });
-    var H = new T3.Group();
-    H.add(bx(3.6, 1.3, 1.7, 0xf1eee8, 0, 1.15, 0, { r: .5 })); H.add(bx(3.9, .12, 1.95, 0x1b1b1f, 0, 1.86, 0, { r: .4 }));
-    H.add(bx(1.5, .7, .04, 0x222222, -.5, 1.25, .87, { e: 0xffc880, ei: .9 })); H.add(bx(.5, 1, .04, 0x8a5a34, 1.1, 1.05, .87, { r: .8 }));
-    H.add(bx(.8, .08, .08, 0x1b1b1f, -2.2, .6, 0, { m: .6 }));
-    [-1, 1].forEach(function (s) { var w = new T3.Mesh(new T3.CylinderGeometry(.3, .3, .2, 24), new T3.MeshStandardMaterial({ color: 0x111111, roughness: .8 })); w.rotation.x = Math.PI / 2; w.position.set(.3, .3, s * .85); w.castShadow = true; H.add(w); });
+    var Hh = new T3.Group();
+    Hh.add(bx(3.6, 1.3, 1.7, 0xf1eee8, 0, 1.15, 0, { r: .5 })); Hh.add(bx(3.9, .12, 1.95, 0x1b1b1f, 0, 1.86, 0, { r: .4 }));
+    Hh.add(bx(1.5, .7, .04, 0x222222, -.5, 1.25, .87, { e: 0xffc880, ei: .9 })); Hh.add(bx(.5, 1, .04, 0x8a5a34, 1.1, 1.05, .87, { r: .8 }));
+    Hh.add(bx(.8, .08, .08, 0x1b1b1f, -2.2, .6, 0, { m: .6 }));
+    [-1, 1].forEach(function (s) { var w = new T3.Mesh(new T3.CylinderGeometry(.3, .3, .2, 24), new T3.MeshStandardMaterial({ color: 0x111111, roughness: .8 })); w.rotation.x = Math.PI / 2; w.position.set(.3, .3, s * .85); w.castShadow = true; Hh.add(w); });
     function mod(c) { var g = new T3.Group(); g.add(bx(1.7, 1.7, 1.7, c, 0, 0, 0, { r: .8 })); g.add(bx(1.74, .1, 1.74, 0x1a1a1d, 0, -.85, 0, { m: .5 })); g.add(bx(1, .75, .04, 0x222222, 0, .1, .87, { e: 0xffc880, ei: .8 })); return g; }
     var M1 = mod(0xffb36b), M2 = mod(0x2ec4f1), M3 = mod(0xffffff);
     var O = [[C, [[-1, 0, -2, .5], [0, 0, 0, .6], [-20, 0, -6, 0], [-20, 0, -6, 0], [-4.4, 0, -1.2, .3]]],
-      [H, [[2.6, 0, 1.6, -.35], [20, 0, 5, 0], [0, 0, 0, -.55], [20, 0, 5, 0], [-.4, 0, 2.2, -.15]]],
+      [Hh, [[2.6, 0, 1.6, -.35], [20, 0, 5, 0], [0, 0, 0, -.55], [20, 0, 5, 0], [-.4, 0, 2.2, -.15]]],
       [M1, [[4.5, 2.4, -3, .5], [20, .85, -4, 0], [-20, .85, -4, 0], [-.9, .85, 0, 0], [-2.2, .85, -2.8, 0]]],
       [M2, [[6.4, .9, -1.5, .2], [20, .85, -4, 0], [-20, .85, -4, 0], [.9, .85, 0, 0], [-.4, .85, -2.8, 0]]],
       [M3, [[3, 3.4, -1.2, .8], [20, .85, -4, 0], [-20, .85, -4, 0], [0, 2.55, 0, 0], [-1.3, 2.55, -2.8, 0]]]];
@@ -830,39 +760,23 @@
     var CP = [[0, 3, 11], [3.5, 2, 5.5], [-3, 2.2, 6], [3, 3.2, 6.5], [1, 4.5, 14]], CT = [[-2.5, 1.4, 0], [-2.2, .8, 0], [3.4, 1, 0], [-2.4, 1.4, 0], [2.4, 1, 0]];
     function sm(t) { return t * t * (3 - 2 * t); }
     function lk(k, s) { var i = Math.min(Math.floor(s), 3), f = sm(s - i), a = k[i], b = k[i + 1]; return a.map(function (v, j) { return v + (b[j] - v) * f; }); }
-    tintFn(curColor);
-    var mx = 0, my = 0, cur = 1, rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches, t0 = performance.now(), lw = 0, lh = 0;
+    var mx = 0, my = 0, cur = 0, rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches, t0 = performance.now(), lw = 0, lh = 0, forced = null;
     addEventListener('pointermove', function (e) { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
-    function res() { var w = cv.clientWidth || innerWidth, h = cv.clientHeight || innerHeight; if (w === lw && h === lh) return; lw = w; lh = h; ren.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
-    function stage(nv) {
-      var ss = nv.querySelectorAll('.st'), y = 0, t = [], i, r;
-      for (i = 0; i < ss.length; i++) t.push(ss[i].getBoundingClientRect().top);
-      if (t.length < 2 || t[0] >= 0) return 1;
-      for (i = 0; i < t.length - 1; i++) if (t[i + 1] > 0) return 1 + i + (-t[i]) / (t[i + 1] - t[i]);
-      return 1 + t.length - 1;
-    }
+    function res() { var w = innerWidth, h = innerHeight; if (w === lw && h === lh) return; lw = w; lh = h; ren.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+    function stage() { var m = Math.max(1, D.documentElement.scrollHeight - innerHeight); return 4 * Math.max(0, Math.min(1, scrollY / m)); }
     function loop(now) {
       requestAnimationFrame(loop);
-      var nv = document.querySelector('.nv');
-      if (!nv) return;
-      if (cv.parentNode !== nv) nv.insertBefore(cv, nv.firstChild);
-      var r = nv.getBoundingClientRect(); if (r.bottom < -50 || r.top > innerHeight + 50) return;
+      if (D.hidden) return;
       res();
-      var t = (now - t0) / 1000, tgt = Math.max(1, Math.min(4, stage(nv)));
-      cur = rm ? tgt : cur + (tgt - cur) * .08;
+      var t = (now - t0) / 1000, tgt = forced == null ? stage() : forced;
+      cur = rm ? tgt : cur + (tgt - cur) * .06;
       var mob = cam.aspect < .85, p = lk(CP, cur), q = lk(CT, cur), k = mob ? 1.9 : 1.22, tx = mob ? q[0] * .15 : q[0], ty = mob ? q[1] - 1.7 : q[1];
       cam.position.set(tx + (p[0] - q[0]) * k + mx * .8, p[1] * (mob ? 1.1 : 1) + my * -.5, p[2] * k); cam.lookAt(tx, ty, q[2]);
-      O.forEach(function (o, i) { var v = lk(o[1], cur); o[0].position.set(v[0], v[1] + Math.sin(t * 1.2 + i) * .05, v[2]); o[0].rotation.y = v[3] + Math.sin(t * .4 + i) * .04 + (cur < 1.9 ? t * .12 * (1.9 - cur) * .5 : 0); });
+      O.forEach(function (o, i) { var v = lk(o[1], cur); o[0].position.set(v[0], v[1] + Math.sin(t * 1.2 + i) * .05, v[2]); o[0].rotation.y = v[3] + Math.sin(t * .4 + i) * .04 + (cur < .9 ? t * .12 * (1 - cur) : 0); });
       ren.render(sc, cam);
     }
-    window.__NEO = { set: function (v) { cur = v; } };
+    window.__NEO = { set: function (v) { forced = v; cur = v; } };
     requestAnimationFrame(loop);
   }
-  function go() {
-    build();
-    var app = document.getElementById('app'); if (!app) return;
-    var raf = 0;
-    new MutationObserver(function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; langSync(); build(); }); }).observe(app, { childList: true, subtree: true });
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', start); else start();
 })();
