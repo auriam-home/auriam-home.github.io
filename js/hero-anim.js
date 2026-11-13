@@ -888,3 +888,272 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
+/* ship.js - scene 3D au defilement : chargement du conteneur, camion, cargo. Remplace la section video. */
+(function () {
+  'use strict';
+  var W = window, D = document, T3 = null, S = null, styled = false, pend = 0;
+  var TX = {
+    fr: { eye: 'Du chargement à la livraison', c: [
+      { a: .02, b: .22, k: '1 · Chargement', h: 'Chargé avec soin.', p: 'Chaque conteneur et chaque maison est levé et posé sur le camion par des professionnels.' },
+      { a: .27, b: .55, k: '2 · Transport', h: 'En route vers chez vous.', p: 'Un transporteur spécialisé l’achemine jusqu’à votre terrain.' },
+      { a: .72, b: .99, k: '3 · Livraison', h: 'Par la route ou par la mer.', p: 'Livraison en Europe, selon votre destination.' }] },
+    en: { eye: 'From loading to delivery', c: [
+      { a: .02, b: .22, k: '1 · Loading', h: 'Loaded with care.', p: 'Every container and every home is lifted and set on the truck by professionals.' },
+      { a: .27, b: .55, k: '2 · Transport', h: 'On its way to you.', p: 'A specialised carrier brings it right to your land.' },
+      { a: .72, b: .99, k: '3 · Delivery', h: 'By road or by sea.', p: 'Delivery across Europe, depending on your destination.' }] }
+  };
+  var CSS = '.sh{position:relative;height:440vh;margin:0;background:transparent}' +
+    '.sh-s{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}' +
+    '.sh-c{position:absolute;left:0;top:0;width:100%;height:100%;display:block;-webkit-mask-image:linear-gradient(180deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(180deg,transparent,#000 9%,#000 91%,transparent)}' +
+    '.sh-f{position:absolute;inset:0;background:#07142B;opacity:0;pointer-events:none}' +
+    '.sh-e{position:absolute;left:max(20px,5vw);top:84px;font:600 12px/1 Poppins,system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#FF8A4C;z-index:2}' +
+    '.sh-t{position:absolute;left:0;right:0;bottom:0;padding:90px max(20px,5vw) calc(34px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(7,20,43,0),rgba(7,20,43,.78) 55%,rgba(7,20,43,.9));z-index:2;min-height:210px;pointer-events:none}' +
+    '.sh-i{position:absolute;left:max(20px,5vw);right:max(20px,5vw);bottom:calc(34px + env(safe-area-inset-bottom,0px));max-width:560px;z-index:3;opacity:0;transform:translateY(14px);transition:none;color:#fff}' +
+    '.sh-i b{display:block;font:600 12px/1.2 Poppins,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#FF8A4C;margin-bottom:10px}' +
+    '.sh-i h3{margin:0 0 8px;font:600 clamp(26px,4.4vw,46px)/1.08 Poppins,system-ui,sans-serif;color:#fff;text-wrap:balance}' +
+    '.sh-i p{margin:0;font:400 clamp(15px,1.7vw,18px)/1.55 Poppins,system-ui,sans-serif;color:rgba(255,255,255,.82)}' +
+    '.sh-p{position:absolute;right:max(14px,2.5vw);top:50%;width:3px;height:96px;margin-top:-48px;background:rgba(255,255,255,.18);border-radius:3px;z-index:2}' +
+    '.sh-p i{display:block;width:100%;height:0;background:#FF6B2C;border-radius:3px}' +
+    '@media(max-width:820px){.sh{height:380vh}.sh-e{top:78px}.sh-i{right:78px}}';
+
+  function lang() { return (D.documentElement.lang || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'fr'; }
+  function cl(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function sm(x) { x = cl(x); return x * x * (3 - 2 * x); }
+  function seg(p, a, b) { return cl((p - a) / (b - a)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function make() {
+    var d = TX[lang()], el = D.createElement('section');
+    el.className = 'sh'; el.setAttribute('aria-label', d.eye);
+    var h = '<div class="sh-s"><canvas class="sh-c" aria-hidden="true"></canvas><div class="sh-f"></div><div class="sh-e">' + d.eye + '</div><div class="sh-t"></div>';
+    for (var i = 0; i < d.c.length; i++) h += '<div class="sh-i"><b>' + d.c[i].k + '</b><h3>' + d.c[i].h + '</h3><p>' + d.c[i].p + '</p></div>';
+    el.innerHTML = h + '<div class="sh-p"><i></i></div></div>';
+    return el;
+  }
+
+  /* ---------- 3D ---------- */
+  function cvTex(w, h, fn, rx, ry) {
+    var c = D.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h);
+    var t = new T3.CanvasTexture(c); t.wrapS = t.wrapT = T3.RepeatWrapping; if (rx) t.repeat.set(rx, ry || 1); return t;
+  }
+  var matC = {};
+  function cmat(col, len) {
+    var k = col + '_' + len; if (matC[k]) return matC[k];
+    var t = cvTex(128, 32, function (g, w, h) {
+      g.fillStyle = '#' + ('000000' + col.toString(16)).slice(-6); g.fillRect(0, 0, w, h);
+      for (var x = 0; x < w; x += 8) { g.fillStyle = 'rgba(0,0,0,.30)'; g.fillRect(x, 0, 3, h); g.fillStyle = 'rgba(255,255,255,.10)'; g.fillRect(x + 3, 0, 2, h); }
+    }, Math.max(1, len / 4), 1);
+    return (matC[k] = new T3.MeshLambertMaterial({ map: t }));
+  }
+  var edgeM = null;
+  function cont(len, col) {
+    var g = new T3.Group(), m = new T3.Mesh(new T3.BoxGeometry(len, 2.6, 2.4), cmat(col, len));
+    g.add(m);
+    var e = new T3.LineSegments(new T3.EdgesGeometry(m.geometry), edgeM); g.add(e);
+    return g;
+  }
+  function box(w, h, d, col, x, y, z, par) {
+    var m = new T3.Mesh(new T3.BoxGeometry(w, h, d), new T3.MeshLambertMaterial({ color: col }));
+    m.position.set(x, y, z); if (par) par.add(m); return m;
+  }
+  function wheel(r, x, y, z, par) {
+    var g = new T3.CylinderGeometry(r, r, .5, 16); g.rotateX(Math.PI / 2);
+    var m = new T3.Mesh(g, new T3.MeshLambertMaterial({ color: 0x0d0f14 })); m.position.set(x, y, z); par.add(m); return m;
+  }
+
+  function init(el) {
+    if (S && S.el !== el) { try { S.dead = true; S.ren.dispose(); } catch (e) { } }
+    var T = T3, cv = el.querySelector('.sh-c'), st = el.querySelector('.sh-s'), fade = el.querySelector('.sh-f'),
+      inf = el.querySelectorAll('.sh-i'), bar = el.querySelector('.sh-p i'), d = TX[lang()];
+    var ren;
+    try { ren = new T.WebGLRenderer({ canvas: cv, antialias: W.innerWidth > 700, alpha: false, powerPreference: 'high-performance' }); } catch (e) { el.remove(); return; }
+    var BG = 0x07142B;
+    ren.setClearColor(BG, 1);
+    var scene = new T.Scene(); scene.fog = new T.Fog(BG, 70, 300);
+    var cam = new T.PerspectiveCamera(40, 1, .5, 2500);
+    scene.add(new T.HemisphereLight(0xcfe0ff, 0x1a2340, .95));
+    var sun = new T.DirectionalLight(0xfff1e2, 1.05); sun.position.set(-25, 45, 30); scene.add(sun);
+    edgeM = edgeM || new T.LineBasicMaterial({ color: 0x0a0d14, transparent: true, opacity: .55 });
+
+    /* sol (route / cour) qui suit la camera */
+    var gt = cvTex(64, 64, function (g, w, h) {
+      g.fillStyle = '#1b2438'; g.fillRect(0, 0, w, h);
+      for (var i = 0; i < 400; i++) { g.fillStyle = 'rgba(255,255,255,' + (Math.random() * .035) + ')'; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+      g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, w, 1); g.fillRect(0, 0, 1, h);
+    }, 40, 20);
+    var ground = new T.Mesh(new T.PlaneGeometry(400, 200), new T.MeshLambertMaterial({ map: gt }));
+    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+    var lt = cvTex(64, 4, function (g, w, h) { g.fillStyle = '#fff'; g.fillRect(0, 0, w * .55, h); }, 40, 1);
+    var lane = new T.Mesh(new T.PlaneGeometry(400, .3), new T.MeshBasicMaterial({ map: lt, transparent: true, opacity: .55 }));
+    lane.rotation.x = -Math.PI / 2; lane.position.set(0, .02, 9.5); scene.add(lane);
+
+    /* piles de conteneurs */
+    var stacks = new T.Group(); scene.add(stacks);
+    var COLS = [0xE8631A, 0x1f3f86, 0xcfd3d8, 0x159a9c, 0xb3262d];
+    function stack(x, z, cols) { for (var i = 0; i < cols.length; i++) { var c = cont(12, cols[i]); c.position.set(x, 1.3 + i * 2.6, z); stacks.add(c); } }
+    stack(10, -4, [COLS[1], COLS[2]]);
+    stack(10, -7.4, [COLS[3], COLS[4], COLS[1]]);
+    stack(26, -4, [COLS[2], COLS[0]]);
+    stack(-20, -5, [COLS[4], COLS[1], COLS[2]]);
+    stack(-20, -8.4, [COLS[0], COLS[3]]);
+    var top = cont(12, COLS[0]); scene.add(top);
+
+    /* engin de manutention */
+    var rs = new T.Group(); rs.position.set(-2, 0, -1.6); scene.add(rs);
+    box(5, 2, 3.4, 0x159a9c, 0, 1.9, 0, rs);
+    box(1.7, 1.7, 2, 0x0e7479, -1.9, 3.7, 0, rs); box(.1, 1, 1.5, 0x0b1220, -.98, 3.9, 0, rs);
+    box(1.4, 1.3, 3.2, 0x0e5f66, 2.1, 1.2, 0, rs);
+    var pw = [[-1.8, 1.6], [1.8, 1.6], [-1.8, -1.6], [1.8, -1.6]]; for (var i = 0; i < 4; i++) wheel(1.0, pw[i][0], 1.0, pw[i][1] * 1.0, rs);
+    var pivot = new T.Vector3(-2 + 1.4, 3.3, -1.6);
+    var bg = new T.BoxGeometry(.8, .8, 1); bg.translate(0, 0, .5);
+    var boom = new T.Mesh(bg, new T.MeshLambertMaterial({ color: 0x1cb0b3 })); scene.add(boom);
+    var spr = box(12, .3, 2.4, 0x0b1220, 0, 0, 0, scene);
+
+    /* camion */
+    var tk = new T.Group(); tk.position.set(0, 0, 4); scene.add(tk);
+    box(13.6, .3, 2.5, 0x161b26, 0, 1.15, 0, tk);
+    box(2.6, 2.9, 2.5, 0x2c3d63, 8.4, 1.95 + .2, 0, tk);
+    box(.2, 1.1, 2.2, 0x9fb4d6, 9.75, 2.9, 0, tk);
+    box(.1, 1.2, 2.3, 0xE8631A, 9.72, 1.5, 0, tk);
+    box(2.2, .9, 2.5, 0x1d2a47, 6.9, 1.2, 0, tk);
+    var ws = [-5.6, -4.4, -3.2, 3.4, 4.6, 8.9]; for (i = 0; i < ws.length; i++) { wheel(.62, ws[i], .62, 1.05, tk); wheel(.62, ws[i], .62, -1.05, tk); }
+
+    /* cargo vu de dessus */
+    var sh = new T.Group(); sh.position.set(0, 0, -2000); scene.add(sh);
+    var oc = new T.Mesh(new T.PlaneGeometry(900, 900), new T.MeshLambertMaterial({
+      map: cvTex(256, 256, function (g, w, h) {
+        g.fillStyle = '#0b3a85'; g.fillRect(0, 0, w, h);
+        for (var i = 0; i < 160; i++) { g.strokeStyle = 'rgba(255,255,255,' + (.04 + Math.random() * .09) + ')'; g.lineWidth = 1 + Math.random() * 1.5; var x = Math.random() * w, y = Math.random() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6 + Math.random() * 18, y + (Math.random() - .5) * 4); g.stroke(); }
+      }, 36, 36)
+    }));
+    oc.rotation.x = -Math.PI / 2; oc.position.set(0, -.6, -2000); scene.add(oc);
+    var shp = new T.Shape(); shp.moveTo(-6, -40); shp.lineTo(6, -40); shp.lineTo(6, 24); shp.lineTo(0, 49); shp.lineTo(-6, 24); shp.lineTo(-6, -40);
+    var hg = new T.ExtrudeGeometry(shp, { depth: 3.2, bevelEnabled: false }); hg.rotateX(-Math.PI / 2);
+    var hull = new T.Mesh(hg, new T.MeshLambertMaterial({ color: 0x1a2644 })); hull.position.y = -.7; sh.add(hull);
+    var seed = 7; function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var xs = [-4.5, -1.5, 1.5, 4.5];
+    for (var bz = -21; bz <= 21; bz += 6.6) for (var bx = 0; bx < 4; bx++) {
+      var hh = 1 + Math.floor(rnd() * 3);
+      for (var lv = 0; lv < hh; lv++) { var c = cont(6, COLS[Math.floor(rnd() * 5)]); c.rotation.y = Math.PI / 2; c.position.set(xs[bx], 2.5 + 1.3 + lv * 2.6, bz); sh.add(c); }
+    }
+    box(10.4, 10, 5.6, 0xe9edf3, 0, 2.5 + 5, 31, sh); box(10.5, 1.2, 4, 0x0b1220, 0, 2.5 + 7.2, 30.2, sh); box(3, 5, 3, 0xE8631A, 0, 2.5 + 12, 32, sh);
+    var wk = new T.Mesh(new T.PlaneGeometry(18, 120), new T.MeshBasicMaterial({
+      map: cvTex(64, 256, function (g, w, h) {
+        var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.beginPath(); g.moveTo(w * .36, 0); g.lineTo(w * .64, 0); g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.fill();
+      }), transparent: true, depthWrite: false
+    }));
+    wk.rotation.x = -Math.PI / 2; wk.position.set(0, -.1, 40 + 60); sh.add(wk);
+    var fm = cvTex(16, 64, function (g, w, h) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(0, 0, w, h); for (var i = 0; i < 20; i++) { g.fillStyle = 'rgba(11,63,143,.5)'; g.fillRect(Math.random() * w, Math.random() * h, 5, 8); } }, 1, 16);
+    for (var sd = -1; sd <= 1; sd += 2) { var f = new T.Mesh(new T.PlaneGeometry(2, 90), new T.MeshBasicMaterial({ map: fm, transparent: true, opacity: .7, depthWrite: false })); f.rotation.x = -Math.PI / 2; f.position.set(sd * 6.8, -.05, 0); sh.add(f); }
+
+    /* ---- etat ---- */
+    var P = 0, lastP = -1, dirty = true, vis = true, forced = null;
+    var look = new T.Vector3(), pos = new T.Vector3();
+    function setP(p) {
+      P = p;
+      /* conteneur */
+      var up = sm(seg(p, 0, .05)), tr = sm(seg(p, .05, .15)), dn = sm(seg(p, .15, .21));
+      var cx = lerp(10, 0, tr), cz = lerp(-4, 4, tr), cy = lerp(6.5, 10.2, up); cy = lerp(cy, 2.6, dn);
+      var q = seg(p, .24, .66), D0 = 320 * q * q;
+      if (p > .215) { cx += D0; }
+      tk.position.x = D0;
+      top.position.set(cx, cy, cz);
+      spr.position.set(cx, cy + 1.45, cz);
+      var rt = sm(seg(p, .215, .27));
+      if (rt > 0) { spr.position.set(lerp(cx, -.5, rt), lerp(cy + 1.45, 8.5, rt), lerp(cz, -1.6, rt)); spr.visible = rt < 1; }
+      var tg = spr.position, ln = pivot.distanceTo(tg); boom.position.copy(pivot); boom.lookAt(tg); boom.scale.z = ln;
+      /* camera */
+      var sf = 1;
+      if (p < .6) {
+        var lx, ly, lz, cxx, cyy, czz;
+        if (p < .24) {
+          var a = sm(seg(p, 0, .21)); lx = lerp(4, 3, a); ly = lerp(4.5, 3.6, a); lz = lerp(-1, 1.5, a);
+          cxx = lerp(9, 6, a); cyy = lerp(14, 11, a); czz = lerp(48, 40, a);
+        } else {
+          var u = sm(seg(p, .24, .5));
+          lx = lerp(3, D0 + 1, sm(seg(p, .22, .3))); ly = lerp(3.6, 3, u); lz = 3;
+          cxx = lx + lerp(2, -4, u); cyy = lerp(11, 7, u); czz = lerp(40, 28, u);
+          var o = sm(seg(p, .5, .6));
+          cxx = lerp(cxx, lx, o); cyy = lerp(cyy, 46, o); czz = lerp(czz, 4.01, o); ly = lerp(ly, 0, o); lz = 4;
+        }
+        look.set(lx, ly, lz); pos.set(cxx, cyy, czz);
+        scene.fog.near = 70; scene.fog.far = 300;
+        ground.position.set(lx, 0, 0); lane.position.x = lx;
+        gt.offset.x = lx / 10; lt.offset.x = lx / 10;
+        top.visible = true; tk.visible = true; stacks.visible = true; rs.visible = true; boom.visible = true; if (rt < 1) spr.visible = true;
+        sh.visible = false; oc.visible = false;
+      } else {
+        var s2 = seg(p, .68, 1), sm2 = sm(s2);
+        look.set(0, 0, -2000 + lerp(-30, 30, s2)); pos.set(lerp(-6, 4, s2) , lerp(88, 66, sm2), look.z + lerp(34, 18, sm2));
+        scene.fog.near = 300; scene.fog.far = 900;
+        top.visible = tk.visible = stacks.visible = rs.visible = boom.visible = spr.visible = ground.visible = lane.visible = false;
+        sh.visible = true; oc.visible = true;
+        fm.offset.y = -p * 40; oc.material.map.offset.y = -(p - .6) * 4;
+      }
+      if (p < .6) { ground.visible = true; lane.visible = true; }
+      cam.position.copy(pos).sub(look).multiplyScalar(cam.aspect < 1 ? 1.55 : 1).add(look);
+      if (cam.aspect < 1 && p < .6) cam.position.y = Math.max(cam.position.y, pos.y);
+      cam.lookAt(look);
+      /* fondu */
+      var fo = p < .6 ? 0 : p < .64 ? seg(p, .6, .64) : p < .685 ? 1 - seg(p, .64, .685) : 0;
+      if (p < .6) fo = 0;
+      if (p >= .56 && p < .6) fo = seg(p, .56, .6);
+      fade.style.opacity = fo.toFixed(3);
+      /* textes */
+      for (var i = 0; i < inf.length; i++) {
+        var c2 = d.c[i], v = Math.min(sm(seg(p, c2.a, c2.a + .035)), 1 - sm(seg(p, c2.b - .035, c2.b)));
+        inf[i].style.opacity = v.toFixed(3); inf[i].style.transform = 'translateY(' + ((1 - v) * 14).toFixed(1) + 'px)';
+      }
+      bar.style.height = (p * 100).toFixed(1) + '%';
+      dirty = true;
+    }
+    function size() {
+      var w = st.clientWidth, h = st.clientHeight; if (!w || !h) return;
+      ren.setPixelRatio(Math.min(W.devicePixelRatio || 1, 1.75)); ren.setSize(w, h, false);
+      cam.aspect = w / h; cam.updateProjectionMatrix(); setP(P);
+    }
+    function prog() {
+      var r = el.getBoundingClientRect(), tot = el.offsetHeight - st.clientHeight;
+      return tot > 0 ? cl(-r.top / tot) : 0;
+    }
+    S = { el: el, ren: ren, dead: false, set: function (v) { forced = v; setP(v); ren.render(scene, cam); } };
+    W.__SHIP = S;
+    var io = 'IntersectionObserver' in W ? new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }, { rootMargin: '200px' }) : null;
+    if (io) io.observe(el);
+    W.addEventListener('resize', size);
+    size();
+    (function loop() {
+      if (S.dead || !el.isConnected) { try { ren.dispose(); } catch (e) { } W.removeEventListener('resize', size); return; }
+      if (vis && forced === null) { var p = prog(); if (Math.abs(p - lastP) > .0004) { lastP = p; setP(p); } }
+      if (dirty && vis) { ren.render(scene, cam); dirty = false; }
+      W.requestAnimationFrame(loop);
+    })();
+  }
+
+  /* ---------- insertion dans la page d'accueil ---------- */
+  function hasGL() { try { var c = D.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; } }
+  function pass() {
+    pend = 0;
+    var app = D.getElementById('app'); if (!app || !app.querySelector('.hero')) return;
+    var vd = app.querySelector('.vids'), vs = vd ? (vd.closest('section') || vd) : null, here = vs;
+    if (app.querySelector('.sh')) { if (vs) vs.remove(); return; }
+    if (!here) here = null;
+    var anchor = here || app.querySelector('.mo-c');
+    if (!anchor) { if (!app.querySelector('.mo-c')) return; }
+    if (!hasGL()) { if (vs) vs.remove(); return; }
+    if (!styled) { var s = D.createElement('style'); s.textContent = CSS; D.head.appendChild(s); styled = true; }
+    var el = make();
+    if (here) here.parentNode.replaceChild(el, here); else anchor.parentNode.insertBefore(el, anchor.nextSibling);
+    var go = function () { T3 = W.THREE; if (!T3) { el.remove(); return; } init(el); };
+    if (W.THREE) go(); else { var sc = D.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; sc.onload = go; sc.onerror = function () { el.remove(); }; D.head.appendChild(sc); }
+  }
+  function ask() { if (!pend) pend = W.requestAnimationFrame(function () { setTimeout(pass, 60); }); }
+  function boot() {
+    var app = D.getElementById('app');
+    if (!app) { return setTimeout(boot, 150); }
+    new MutationObserver(ask).observe(app, { childList: true, subtree: true });
+    ask();
+  }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot); else boot();
+})();
