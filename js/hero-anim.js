@@ -492,21 +492,23 @@
 /* AURIAM HOME – accueil moderne : photo d'en-tête révélée après l'animation, promesse + chiffres, grande photo, parc d'exposition. */
 (function () {
   'use strict';
-  var IMG = { hero: 'photos/maison-hero.jpg?v=2', big: 'photos/maison-grande.jpg?v=2', park: 'photos/parc-expo.jpg?v=2' };
+  var IMG = { hero: 'photos/maison-hero.jpg?v=2', big: 'photos/maison-grande.jpg?v=2', park: 'photos/parc-expo.jpg?v=2', cont: 'photos/conteneur-maritime.jpg?v=1' };
   var T = {
     fr: {
       k1: 'Notre promesse', h1: 'Un espace de vie confortable, <em>sans stress</em>, du premier appel jusqu’à l’installation.',
       s: [['36', '', 'mois', 'de paiement échelonné, selon votre budget'], ['7', '10', 'jours', 'pour une livraison dédiée en Europe'], ['30', '', 'jours', 'de validité de votre devis gratuit'], ['100', '', '%', 'déchargement et installation offerts']],
       k2: 'Neuf & occasion', h2: 'Des modèles pour chaque terrain.',
       k3: 'Parc d’exposition', h3: 'Venez les voir de vos propres yeux.',
-      p3: 'Route de Lyon, à Périgueux. Du lundi au vendredi de 9 h à 18 h, le samedi de 9 h à 13 h. On vous montre, on vous conseille, sans pression.', l3: 'Préparer ma visite →'
+      p3: 'Route de Lyon, à Périgueux. Du lundi au vendredi de 9 h à 18 h, le samedi de 9 h à 13 h. On vous montre, on vous conseille, sans pression.', l3: 'Préparer ma visite →',
+      k4: 'Conteneurs maritimes', h4: 'Solides, prêts à être aménagés.', p4: '20 ou 40 pieds, neufs ou d’occasion. Livraison en Europe et paiement échelonné possible.', l4: 'Voir les conteneurs →'
     },
     en: {
       k1: 'Our promise', h1: 'A comfortable living space, <em>stress-free</em>, from the first call to installation.',
       s: [['36', '', 'months', 'of instalment payments to fit your budget'], ['7', '10', 'days', 'for dedicated delivery across Europe'], ['30', '', 'days', 'validity of your free quote'], ['100', '', '%', 'free unloading and installation']],
       k2: 'New & used', h2: 'A model for every plot of land.',
       k3: 'Show park', h3: 'Come and see them for yourself.',
-      p3: 'Route de Lyon, Périgueux. Monday to Friday 9 am–6 pm, Saturday 9 am–1 pm. We show you around and advise you, no pressure.', l3: 'Plan my visit →'
+      p3: 'Route de Lyon, Périgueux. Monday to Friday 9 am–6 pm, Saturday 9 am–1 pm. We show you around and advise you, no pressure.', l3: 'Plan my visit →',
+      k4: 'Shipping containers', h4: 'Tough, ready to be fitted out.', p4: '20 or 40 ft, new or used. Delivery across Europe and instalment payments available.', l4: 'See containers →'
     }
   };
   var CSS = '' +
@@ -529,6 +531,7 @@
     '.mo-full .cap .mo-k{color:#f0c27d}.mo-full .cap h2{font-size:clamp(30px,5.4vw,68px);line-height:1.05;letter-spacing:-.03em;font-weight:500;margin:10px 0 0;max-width:16ch}' +
     '.mo-sp{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(26px,6vw,88px);align-items:center}' +
     '.mo-im{border-radius:24px;overflow:hidden;aspect-ratio:4/3.3;box-shadow:0 24px 56px rgba(20,38,63,.16)}.mo-im img{width:100%;height:100%;object-fit:cover;display:block}' +
+    '.mo-c .mo-im{aspect-ratio:4/5}@media(min-width:821px){.mo-c .mo-sp{grid-template-columns:1fr 1fr}.mo-c .mo-im{order:2}}@media(max-width:820px){.mo-c .mo-sp{grid-template-columns:1fr!important}.mo-c .mo-im{order:-1;aspect-ratio:4/4.4}}' +
     '.mo-sp h2{font-size:clamp(28px,4.2vw,50px);line-height:1.08;letter-spacing:-.03em;font-weight:500;margin:12px 0 16px}' +
     '.mo-sp p{color:var(--mut,#4C5A70);line-height:1.75;font-size:17px;margin:0 0 24px;max-width:46ch}' +
     '.mo-l{display:inline-flex;font-weight:600;border-bottom:1.5px solid var(--cu,#C98A3D);padding-bottom:4px;color:var(--navy,#14263F)}' +
@@ -576,9 +579,14 @@
     f.innerHTML = '<img src="' + IMG.big + '" alt="" loading="lazy" onerror="if(!this.dataset.r){this.dataset.r=1;var u=this;setTimeout(function(){u.src=\'photos/maison-grande.jpg?r=\'+Date.now()},1500)}else{this.closest(\'.mo-f\').remove()}"><div class="cap"><span class="mo-k">' + D.k2 + '</span><h2>' + D.h2 + '</h2></div>';
     var x = document.createElement('section'); x.className = 'mo mo-x';
     x.innerHTML = '<div class="mw mo-sp"><div class="mo-im mo-rv"><img src="' + IMG.park + '" alt="" loading="lazy" onerror="var g=this.closest(\'.mo-sp\');g.style.display=\'block\';this.closest(\'.mo-im\').remove()"></div><div class="mo-rv"><span class="mo-k">' + D.k3 + '</span><h2>' + D.h3 + '</h2><p>' + D.p3 + '</p><a class="mo-l" href="#/contact">' + D.l3 + '</a></div></div>';
+    var cl = '#/all', ca = app.querySelectorAll('a[href^="#/c/"]');
+    for (i = 0; i < ca.length; i++) if (/maritime|shipping/i.test(ca[i].textContent + ' ' + ca[i].getAttribute('href'))) { cl = ca[i].getAttribute('href'); break; }
+    var c4 = document.createElement('section'); c4.className = 'mo mo-x mo-c';
+    c4.innerHTML = '<div class="mw mo-sp"><div class="mo-rv"><span class="mo-k">' + D.k4 + '</span><h2>' + D.h4 + '</h2><p>' + D.p4 + '</p><a class="mo-l" href="' + cl + '">' + D.l4 + '</a></div><div class="mo-im mo-rv"><img src="' + IMG.cont + '" alt="" loading="lazy" onerror="var g=this.closest(\'.mo-sp\');g.style.display=\'block\';this.closest(\'.mo-im\').remove()"></div></div>';
     anchor.parentNode.insertBefore(f, anchor.nextSibling);
     f.parentNode.insertBefore(x, f.nextSibling);
-    reveal(p); reveal(f); reveal(x);
+    x.parentNode.insertBefore(c4, x.nextSibling);
+    reveal(p); reveal(f); reveal(x); reveal(c4);
     var img = f.querySelector('img');
     if (img && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
       addEventListener('scroll', function () {
