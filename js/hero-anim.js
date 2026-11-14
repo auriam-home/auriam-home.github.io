@@ -673,65 +673,33 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
-/* AURIAM HOME – fond 3D (conteneur, maison mobile, modules) qui évolue tout au long de la page, derrière tout le site. */
+/* AURIAM HOME – site clair + fond 3D : vue aerienne douce d'un petit village de maisons modulaires et de conteneurs, qui glisse doucement pendant le defilement. */
 (function () {
   'use strict';
   var D = document, H = D.documentElement;
+  var BG = 0xf4f1ec;
   var CSS = '' +
-    'html.nv{--bg:#07142B;--card:rgba(11,26,56,.66);--line:rgba(255,255,255,.14);--txt:#fff;--mut:#b9c4da;--cu:#FF6B2C;--cu-d:#FF9A3C;color-scheme:dark}' +
-    'html.nv body{background:#07142B;color:#fff}' +
+    'html.lt body{background:#f4f1ec}' +
     '#nvcv{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;display:block;pointer-events:none;opacity:0;transition:opacity 1.2s}' +
-    'html.nv #nvcv{opacity:1}' +
-    '#nvveil{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(7,20,43,.12),rgba(7,20,43,.32))}' +
-    'html.nv #app{position:relative;z-index:1}' +
-    /* fonds clairs -> verre sombre */
-    'html.nv .top,html.nv .top.sc{background:rgba(7,20,43,.72)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.1)!important;box-shadow:none!important}' +
-    'html.nv .logo b{color:#fff}html.nv .logo i{color:#FF9A3C}' +
-    'html.nv .ib{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff}' +
-    'html.nv .hero{background:transparent}' +
-    'html.nv .card,html.nv .why div,html.nv details,html.nv .spec,html.nv .steps div,html.nv .empty,html.nv .tem,html.nv .chip,html.nv select,html.nv .tnav button,html.nv .sbox .in,html.nv .lang button,html.nv .th button,html.nv .lf-find,html.nv .mo-st>div{background:rgba(11,26,56,.55)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(10px);border-color:rgba(255,255,255,.14)!important;color:#fff}' +
-    'html.nv #app .sec>.grid>.card{background:rgba(11,26,56,.6)!important;color:#fff;box-shadow:none}html.nv .card h3,html.nv .card .pr{color:#fff}html.nv .card .pr{color:#FF9A3C}' +
-    'html.nv .lf-cb,html.nv .doc,html.nv .pd .i,html.nv .lf-find{background:rgba(11,26,56,.62)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:16px;color:#fff}' +
-    'html.nv .doc,html.nv .pd .i{padding:22px 20px 24px}html.nv .lf-find,html.nv .lf-cb{padding:20px}' +
-    'html.nv .lf-cb input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff}html.nv .lf-cb input::placeholder{color:#9fb0cb}html.nv .lf-cbm{color:#FF9A3C}html.nv .lf-find .lf-map{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.06)}' +
-    'html.nv .mo-l,html.nv .lf-find a:not(.btn){color:#fff}html.nv .mo-l{border-bottom-color:#FF6B2C}' +
-    'html.nv .chip.on,html.nv .lang button.on{background:linear-gradient(135deg,#FF9A3C,#FF4D1F)!important;border-color:transparent!important;color:#fff}' +
-    'html.nv .btn.cu{background:linear-gradient(135deg,#FF9A3C,#FF4D1F)!important;color:#fff!important}' +
-    'html.nv .btn.cu:hover{box-shadow:0 12px 34px rgba(255,107,44,.4)}' +
-    'html.nv .btn.line.dk{border-color:rgba(255,255,255,.5);color:#fff}' +
-    'html.nv .badge,html.nv .steps b,html.nv .hero .k{color:#FF9A3C}' +
-    'html.nv .sub,html.nv .why span,html.nv details p,html.nv .card .sp,html.nv .note,html.nv .back,html.nv .spec span:first-child,html.nv .load,html.nv .res small,html.nv .empty{color:#b9c4da}' +
-    'html.nv .desc,html.nv .doc p,html.nv .doc li,html.nv .steps span,html.nv .tem blockquote,html.nv .lst{color:#dbe3f1}' +
-    'html.nv .tem .who{color:#fff}' +
-    'html.nv .spec div{border-bottom-color:rgba(255,255,255,.1)}' +
-    'html.nv .sec h2,html.nv .pt,html.nv .doc h1,html.nv .doc h2,html.nv .pd h1,html.nv .hero h1,html.nv .mo-big,html.nv .mo-f h2{text-shadow:0 2px 20px rgba(7,20,43,.65)}' +
-    'html.nv .mo-big,html.nv .mo-st b,html.nv .mo-x h2{color:#fff}' +
-    'html.nv .mo-k{color:#FF9A3C}html.nv .mo-big em{color:#FF9A3C}' +
-    'html.nv .mo-st,html.nv .mo-st>div{border-color:rgba(255,255,255,.14)}' +
-    'html.nv .mo-st span,html.nv .mo-x p{color:#b9c4da}' +
-    'html.nv .foot{background:rgba(7,20,43,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}' +
-    'html.nv .foot .c{border-top-color:rgba(255,255,255,.12)}' +
-    'html.nv .band,html.nv .lf-3d,html.nv .lf-strip{background:rgba(11,26,56,.7)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}' +
-    'html.nv .lf-3d{background:radial-gradient(90% 70% at 50% 38%,rgba(42,74,117,.55),rgba(11,26,56,.7))!important}' +
-    'html.nv .res,html.nv .sbox input{color:#fff}html.nv .sbox input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}' +
-    'html.nv .card .ph,html.nv .main{background:rgba(255,255,255,.06)}' +
-    'html.nv .tem .av{background:#FF6B2C}' +
-    'html.nv select{background-image:none}html.nv option{color:#07142B}' +
+    'html.lt #nvcv{opacity:1}' +
+    '#nvveil{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(244,241,236,.72),rgba(244,241,236,.84))}' +
+    'html.lt #app{position:relative;z-index:1}' +
+    'html.lt .lf-strip{background:rgba(255,255,255,.7)!important;color:#0b1a38}' +
     '@media(prefers-reduced-motion:reduce){#nvcv{transition:none}}';
 
   function hasGL() { try { var c = D.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; } }
-  function off() { H.classList.remove('nv'); var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }
+  function off() { H.classList.remove('lt'); var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }
 
   function start() {
-    if (!hasGL()) return;
+    H.classList.add('lt');
     var st = D.createElement('style'); st.textContent = CSS; D.head.appendChild(st);
+    if (!hasGL()) return;
     var cv = D.createElement('canvas'); cv.id = 'nvcv'; cv.setAttribute('aria-hidden', 'true');
     var vl = D.createElement('div'); vl.id = 'nvveil';
     D.body.insertBefore(vl, D.body.firstChild); D.body.insertBefore(cv, D.body.firstChild);
-    H.classList.add('nv');
     if (window.THREE) return scene(cv);
     var s = D.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    s.onload = function () { scene(cv); }; s.onerror = off; D.head.appendChild(s);
+    s.onload = function () { scene(cv); }; s.onerror = function () { var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }; D.head.appendChild(s);
   }
 
   function scene(cv) {
@@ -741,36 +709,46 @@
     var small = Math.min(innerWidth, innerHeight) < 700;
     ren.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2));
     ren.shadowMap.enabled = !small; ren.shadowMap.type = T3.PCFSoftShadowMap;
-    var sc = new T3.Scene(); sc.background = new T3.Color(0x07142b); sc.fog = new T3.Fog(0x07142b, 14, 36);
-    var cam = new T3.PerspectiveCamera(40, 1, .1, 100);
-    sc.add(new T3.AmbientLight(0xffffff, .5));
-    var d = new T3.DirectionalLight(0xffe2b0, 1.15); d.position.set(6, 11, 7); d.castShadow = true; d.shadow.mapSize.set(1024, 1024);
-    var sh = d.shadow.camera; sh.left = -16; sh.right = 16; sh.top = 16; sh.bottom = -16; sh.far = 40; sc.add(d);
-    var rim = new T3.DirectionalLight(0x2ec4f1, .9); rim.position.set(-9, 5, -7); sc.add(rim);
-    var gr = new T3.Mesh(new T3.PlaneGeometry(140, 140), new T3.MeshStandardMaterial({ color: 0x0c2147, roughness: .9 })); gr.rotation.x = -Math.PI / 2; gr.receiveShadow = true; sc.add(gr);
-    var gh = new T3.GridHelper(140, 70, 0x1d3a70, 0x12274d); gh.position.y = .01; sc.add(gh);
-    function bx(w, h, dd, c, x, y, z, o) { o = o || {}; var m = new T3.Mesh(new T3.BoxGeometry(w, h, dd), o.mat || new T3.MeshStandardMaterial({ color: c, roughness: o.r == null ? .6 : o.r, metalness: o.m || 0, emissive: o.e || 0, emissiveIntensity: o.ei || 1 })); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
-    var cMat = new T3.MeshStandardMaterial({ color: 0xff6b2c, roughness: .45, metalness: .5 }), rMat = cMat.clone(); rMat.color.multiplyScalar(.72);
-    var C = new T3.Group(); C.add(bx(4, 1.5, 1.6, 0, 0, .75, 0, { mat: cMat }));
-    for (var i = 0; i < 16; i++) { var x = -1.875 + i * .25;[-1, 1].forEach(function (s) { C.add(bx(.06, 1.36, .05, 0, x, .75, s * .81, { mat: rMat })); }); }
-    C.add(bx(1.3, .6, .04, 0x222222, 0, .8, .84, { e: 0xffc880, ei: .9 }));
-    [-1, 1].forEach(function (a) { C.add(bx(.04, 1.3, .7, 0, 2.02, .75, a * .38, { mat: rMat })); [-1, 1].forEach(function (b) { C.add(bx(.1, 1.52, .1, 0xffb36b, a * 2, .75, b * .8, { m: .8, r: .3 })); }); });
-    var Hh = new T3.Group();
-    Hh.add(bx(3.6, 1.3, 1.7, 0xf1eee8, 0, 1.15, 0, { r: .5 })); Hh.add(bx(3.9, .12, 1.95, 0x1b1b1f, 0, 1.86, 0, { r: .4 }));
-    Hh.add(bx(1.5, .7, .04, 0x222222, -.5, 1.25, .87, { e: 0xffc880, ei: .9 })); Hh.add(bx(.5, 1, .04, 0x8a5a34, 1.1, 1.05, .87, { r: .8 }));
-    Hh.add(bx(.8, .08, .08, 0x1b1b1f, -2.2, .6, 0, { m: .6 }));
-    [-1, 1].forEach(function (s) { var w = new T3.Mesh(new T3.CylinderGeometry(.3, .3, .2, 24), new T3.MeshStandardMaterial({ color: 0x111111, roughness: .8 })); w.rotation.x = Math.PI / 2; w.position.set(.3, .3, s * .85); w.castShadow = true; Hh.add(w); });
-    function mod(c) { var g = new T3.Group(); g.add(bx(1.7, 1.7, 1.7, c, 0, 0, 0, { r: .8 })); g.add(bx(1.74, .1, 1.74, 0x1a1a1d, 0, -.85, 0, { m: .5 })); g.add(bx(1, .75, .04, 0x222222, 0, .1, .87, { e: 0xffc880, ei: .8 })); return g; }
-    var M1 = mod(0xffb36b), M2 = mod(0x2ec4f1), M3 = mod(0xffffff);
-    var O = [[C, [[-1, 0, -2, .5], [0, 0, 0, .6], [-20, 0, -6, 0], [-20, 0, -6, 0], [-4.4, 0, -1.2, .3]]],
-      [Hh, [[2.6, 0, 1.6, -.35], [20, 0, 5, 0], [0, 0, 0, -.55], [20, 0, 5, 0], [-.4, 0, 2.2, -.15]]],
-      [M1, [[4.5, 2.4, -3, .5], [20, .85, -4, 0], [-20, .85, -4, 0], [-.9, .85, 0, 0], [-2.2, .85, -2.8, 0]]],
-      [M2, [[6.4, .9, -1.5, .2], [20, .85, -4, 0], [-20, .85, -4, 0], [.9, .85, 0, 0], [-.4, .85, -2.8, 0]]],
-      [M3, [[3, 3.4, -1.2, .8], [20, .85, -4, 0], [-20, .85, -4, 0], [0, 2.55, 0, 0], [-1.3, 2.55, -2.8, 0]]]];
-    O.forEach(function (o) { sc.add(o[0]); });
-    var CP = [[0, 3, 11], [3.5, 2, 5.5], [-3, 2.2, 6], [3, 3.2, 6.5], [1, 4.5, 14]], CT = [[-2.5, 1.4, 0], [-2.2, .8, 0], [3.4, 1, 0], [-2.4, 1.4, 0], [2.4, 1, 0]];
+    var sc = new T3.Scene(); sc.background = new T3.Color(BG); sc.fog = new T3.Fog(BG, 22, 62);
+    var cam = new T3.PerspectiveCamera(36, 1, .1, 120);
+    sc.add(new T3.HemisphereLight(0xffffff, 0xd9d2c6, .85));
+    var d = new T3.DirectionalLight(0xfff1dc, .85); d.position.set(10, 18, 8); d.castShadow = true; d.shadow.mapSize.set(2048, 2048);
+    var sh = d.shadow.camera; sh.left = -30; sh.right = 30; sh.top = 30; sh.bottom = -30; sh.far = 70; d.shadow.radius = 4; sc.add(d);
+    var gr = new T3.Mesh(new T3.PlaneGeometry(200, 200), new T3.MeshStandardMaterial({ color: 0xe9e5dc, roughness: 1 })); gr.rotation.x = -Math.PI / 2; gr.receiveShadow = true; sc.add(gr);
+    function M(c, r, m) { return new T3.MeshStandardMaterial({ color: c, roughness: r == null ? .75 : r, metalness: m || 0 }); }
+    var mWhite = M(0xfbfaf7), mCream = M(0xefe6d6), mDark = M(0x2a3345, .5), mGlass = M(0x8fa3bd, .25, .2), mWood = M(0xb98a5e),
+      mRoad = M(0xd8d3c8, 1), mLot = M(0xf1eee7, 1), mGrass = M(0xcfd8c2, 1), mTree = M(0x9db38a, 1), mTrunk = M(0x8a7a66),
+      cols = [M(0xe8793c, .55, .25), M(0x1f3a63, .55, .25), M(0xd9cdb6, .6, .2), M(0x6e8aa8, .55, .25), M(0xf0a066, .55, .2)];
+    function bx(w, h, dd, mat, x, y, z) { var m = new T3.Mesh(new T3.BoxGeometry(w, h, dd), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
+    function house(seed) {
+      var g = new T3.Group(), w = 3.4 + (seed % 3) * .5, body = seed % 2 ? mWhite : mCream;
+      g.add(bx(w, 1.25, 1.7, body, 0, .62, 0)); g.add(bx(w + .3, .12, 2, mDark, 0, 1.31, 0));
+      g.add(bx(w * .42, .62, .05, mGlass, -w * .2, .75, .86)); g.add(bx(.46, .98, .05, mWood, w * .3, .5, .86));
+      if (seed % 3 === 0) g.add(bx(w * .8, .05, 1.1, mWood, 0, .03, 1.5));
+      return g;
+    }
+    function cont(seed) {
+      var g = new T3.Group(), m = cols[seed % cols.length]; g.add(bx(4, 1.5, 1.6, m, 0, .75, 0));
+      for (var i = 0; i < 9; i++) g.add(bx(.05, 1.4, .04, mDark, -1.75 + i * .44, .75, .81));
+      return g;
+    }
+    function tree(x, z, s) { var g = new T3.Group(); g.add(bx(.14, .5 * s, .14, mTrunk, 0, .25 * s, 0)); var c = new T3.Mesh(new T3.IcosahedronGeometry(.55 * s, 0), mTree); c.position.y = .85 * s; c.castShadow = true; g.add(c); g.position.set(x, 0, z); return g; }
+    var rnd = (function (s) { return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })(7);
+    var ROW = 6.4, COL = 7.4, i, j;
+    for (i = -4; i <= 4; i++) { var rd = new T3.Mesh(new T3.PlaneGeometry(200, 1.4), mRoad); rd.rotation.x = -Math.PI / 2; rd.position.set(0, .012, i * ROW + ROW / 2); rd.receiveShadow = true; sc.add(rd); }
+    for (j = -6; j <= 6; j++) { var rv = new T3.Mesh(new T3.PlaneGeometry(1.2, 200), mRoad); rv.rotation.x = -Math.PI / 2; rv.position.set(j * COL + COL / 2, .013, 0); rv.receiveShadow = true; sc.add(rv); }
+    for (i = -4; i <= 4; i++) for (j = -6; j <= 6; j++) {
+      var cx = j * COL, cz = i * ROW, r = rnd();
+      var lot = new T3.Mesh(new T3.PlaneGeometry(COL - 1.6, ROW - 1.8), r < .22 ? mGrass : mLot); lot.rotation.x = -Math.PI / 2; lot.position.set(cx, .02, cz); lot.receiveShadow = true; sc.add(lot);
+      var o;
+      if (r < .22) { sc.add(tree(cx - 1.2, cz, 1.2 + rnd() * .5)); sc.add(tree(cx + 1.1, cz + .5, 1 + rnd() * .5)); sc.add(tree(cx, cz - 1, .9 + rnd() * .4)); continue; }
+      if (r < .62) { o = house(Math.floor(rnd() * 9)); } else { o = cont(Math.floor(rnd() * 20)); if (rnd() < .35) { var o2 = cont(Math.floor(rnd() * 20)); o2.position.y = 1.5; o.add(o2); } }
+      o.position.set(cx, .02, cz); o.rotation.y = rnd() < .5 ? 0 : Math.PI; sc.add(o);
+      if (rnd() < .5) sc.add(tree(cx + (rnd() < .5 ? -2.4 : 2.4), cz + 1.2, .9 + rnd() * .4));
+    }
+    var CP = [[-16, 24, 28], [-6, 16, 20], [6, 12, 15], [16, 17, 20], [3, 27, 30]], CT = [[0, 0, 0], [-1, 0, -2], [4, 0, -3], [7, 0, -1], [0, 0, -3]];
     function sm(t) { return t * t * (3 - 2 * t); }
-    function lk(k, s) { var i = Math.min(Math.floor(s), 3), f = sm(s - i), a = k[i], b = k[i + 1]; return a.map(function (v, j) { return v + (b[j] - v) * f; }); }
+    function lk(k, s) { var n = Math.min(Math.floor(s), 3), f = sm(s - n), a = k[n], b = k[n + 1]; return a.map(function (v, q) { return v + (b[q] - v) * f; }); }
     var mx = 0, my = 0, cur = 0, rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches, t0 = performance.now(), lw = 0, lh = 0, forced = null;
     addEventListener('pointermove', function (e) { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
     function res() { var w = innerWidth, h = innerHeight; if (w === lw && h === lh) return; lw = w; lh = h; ren.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
@@ -781,9 +759,8 @@
       res();
       var t = (now - t0) / 1000, tgt = forced == null ? stage() : forced;
       cur = rm ? tgt : cur + (tgt - cur) * .06;
-      var mob = cam.aspect < .85, p = lk(CP, cur), q = lk(CT, cur), k = mob ? 1.9 : 1.22, tx = mob ? q[0] * .15 : q[0], ty = mob ? q[1] - 1.7 : q[1];
-      cam.position.set(tx + (p[0] - q[0]) * k + mx * .8, p[1] * (mob ? 1.1 : 1) + my * -.5, p[2] * k); cam.lookAt(tx, ty, q[2]);
-      O.forEach(function (o, i) { var v = lk(o[1], cur); o[0].position.set(v[0], v[1] + Math.sin(t * 1.2 + i) * .05, v[2]); o[0].rotation.y = v[3] + Math.sin(t * .4 + i) * .04 + (cur < .9 ? t * .12 * (1 - cur) : 0); });
+      var mob = cam.aspect < .85, p = lk(CP, cur), q = lk(CT, cur), k = mob ? 1.35 : 1, dr = rm ? 0 : Math.sin(t * .12) * 1.2;
+      cam.position.set(p[0] * k + dr + mx * .8, p[1] * (mob ? 1.15 : 1) + my * -.5, p[2] * k); cam.lookAt(q[0], q[1], q[2]);
       ren.render(sc, cam);
     }
     window.__NEO = { set: function (v) { forced = v; cur = v; } };
@@ -906,7 +883,7 @@
   };
   var CSS = '.sh{position:relative;height:440vh;margin:0;background:transparent}' +
     '.sh-s{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}' +
-    '.sh-c{position:absolute;left:0;top:0;width:100%;height:100%;display:block;-webkit-mask-image:linear-gradient(180deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(180deg,transparent,#000 9%,#000 91%,transparent)}' +
+    '.sh-c{position:absolute;left:0;top:0;width:100%;height:100%;display:block;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}' +
     '.sh-f{position:absolute;inset:0;background:#07142B;opacity:0;pointer-events:none}' +
     '.sh-e{position:absolute;left:max(20px,5vw);top:84px;font:600 12px/1 Poppins,system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#FF8A4C;z-index:2}' +
     '.sh-t{position:absolute;left:0;right:0;bottom:0;padding:90px max(20px,5vw) calc(34px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(7,20,43,0),rgba(7,20,43,.78) 55%,rgba(7,20,43,.9));z-index:2;min-height:210px;pointer-events:none}' +
@@ -1171,20 +1148,20 @@
   };
   var IMG = 'photos/maison-hero.jpg?v=2';
   var CSS = '.hero{display:none!important}' +
-    '.h2s{position:relative;padding:34px 0 10px;color:#fff;font-family:Poppins,system-ui,sans-serif;background:linear-gradient(180deg,rgba(7,20,43,.94) 0%,rgba(7,20,43,.82) 55%,rgba(7,20,43,0) 100%)}' +
+    '.h2s{position:relative;padding:34px 0 10px;color:#0b1a38;font-family:Poppins,system-ui,sans-serif}' +
     '.h2w{width:min(1240px,calc(100% - 40px));margin:0 auto}' +
     '.h2t{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(24px,5vw,84px);align-items:end}' +
-    '.h2k{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#FF8A4C}' +
-    '.h2s h1{margin:14px 0 0;font-size:clamp(36px,5.6vw,72px);line-height:1.03;font-weight:600;font-style:normal;letter-spacing:-.028em;color:#fff;text-wrap:balance}' +
-    '.h2r p{margin:0 0 24px;font-size:15.5px;line-height:1.7;color:rgba(255,255,255,.74);max-width:430px}' +
+    '.h2k{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#E8581C}' +
+    '.h2s h1{margin:14px 0 0;font-size:clamp(36px,5.6vw,72px);line-height:1.03;font-weight:600;font-style:normal;letter-spacing:-.028em;color:#0b1a38;text-wrap:balance}' +
+    '.h2r p{margin:0 0 24px;font-size:15.5px;line-height:1.7;color:#4d586d;max-width:430px}' +
     '.h2b{display:flex;flex-wrap:wrap;gap:12px}' +
     '.h2s .h2p,.h2s .h2o{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:15px 28px;font-size:15px;font-weight:600;text-decoration:none;line-height:1;white-space:nowrap;transition:transform .2s,box-shadow .2s,background .2s}' +
     '.h2s .h2p{background:linear-gradient(135deg,#FF8A3D,#FF5A1F);color:#fff;box-shadow:0 10px 26px rgba(255,90,31,.32)}' +
-    '.h2s .h2o{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.3)}' +
-    '.h2s .h2p:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(255,90,31,.42)}.h2s .h2o:hover{background:rgba(255,255,255,.14)}' +
-    '.h2m{position:relative;margin-top:clamp(28px,4.2vw,52px);border-radius:32px;overflow:hidden;aspect-ratio:16/7;background:#0b1a38;border:1px solid rgba(255,255,255,.12);box-shadow:0 34px 90px rgba(0,0,0,.5);isolation:isolate}' +
+    '.h2s .h2o{background:#fff;color:#0b1a38;border:1px solid rgba(11,26,56,.18)}' +
+    '.h2s .h2p:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(255,90,31,.42)}.h2s .h2o:hover{background:#0b1a38;color:#fff}' +
+    '.h2m{position:relative;margin-top:clamp(28px,4.2vw,52px);border-radius:32px;overflow:hidden;aspect-ratio:16/7;background:#e8e3d9;box-shadow:0 30px 70px rgba(11,26,56,.18);isolation:isolate}' +
     '.h2m img{position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover;object-position:center 60%;transform:translate3d(0,var(--py,0px),0) scale(1.02);will-change:transform}' +
-    '.h2m:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,20,43,.0) 40%,rgba(7,20,43,.72) 100%),linear-gradient(90deg,rgba(7,20,43,.28),rgba(7,20,43,0) 50%);pointer-events:none}' +
+    '.h2m:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,20,43,0) 45%,rgba(7,20,43,.6) 100%);pointer-events:none}' +
     '.h2c{position:absolute;left:22px;bottom:22px;z-index:2;display:flex;background:rgba(10,22,46,.5);-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2);border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:16px 4px}' +
     '.h2c div{padding:0 26px;border-right:1px solid rgba(255,255,255,.16);min-width:0}.h2c div:last-child{border:0}' +
     '.h2c b{display:block;font-size:24px;font-weight:600;line-height:1.1;letter-spacing:-.01em;white-space:nowrap}.h2c b i{font-style:normal;font-size:13px;font-weight:500;color:#FF9A5C;margin-left:4px}' +
@@ -1192,10 +1169,10 @@
     '.h2v{position:absolute;right:22px;bottom:22px;z-index:2;display:flex;align-items:center;gap:14px;padding:10px 22px 10px 10px;border-radius:999px;background:rgba(10,22,46,.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;font-size:14px;font-weight:500;transition:background .2s}' +
     '.h2v:hover{background:rgba(255,106,44,.35)}' +
     '.h2v i{width:44px;height:44px;border-radius:50%;background:#fff;color:#0b1a38;display:flex;align-items:center;justify-content:center}.h2v svg{width:18px;height:18px}' +
-    '.h2f{margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;padding:20px 26px;border-radius:26px;background:rgba(11,26,56,.62);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12)}' +
-    '.h2f>b{font-size:16px;font-weight:600;margin-right:10px}' +
-    '.h2f a{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;font-size:14px;font-weight:500;transition:background .2s,border-color .2s}' +
-    '.h2f a:hover{background:#FF6B2C;border-color:#FF6B2C}' +
+    '.h2f{margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;padding:20px 26px;border-radius:26px;background:#fff;box-shadow:0 10px 34px rgba(11,26,56,.08);border:1px solid rgba(11,26,56,.06)}' +
+    '.h2f>b{color:#0b1a38;font-size:16px;font-weight:600;margin-right:10px}' +
+    '.h2f a{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid rgba(11,26,56,.16);color:#0b1a38;text-decoration:none;font-size:14px;font-weight:500;transition:background .2s,border-color .2s,color .2s}' +
+    '.h2f a:hover{background:#FF6B2C;border-color:#FF6B2C;color:#fff}' +
     '.h2s .h2a{opacity:0;transform:translateY(20px);animation:h2u .9s cubic-bezier(.2,.7,.2,1) forwards}' +
     '@keyframes h2u{to{opacity:1;transform:none}}' +
     '@media(prefers-reduced-motion:reduce){.h2s .h2a{animation:none;opacity:1;transform:none}.h2m img{transform:none!important}}' +
