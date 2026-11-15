@@ -1133,7 +1133,7 @@
   var CSS = '' +
     'html,body{background:#F4EFE6}' +
     ':root{--cu:#0b1a38;--cu-d:#0b1a38}' +
-    '.fl-d,.foot,.band,#tm .tem,.pc,.h2c,.dr{--cu:#fff;--cu-d:#fff}' +
+    '.fl-d,.foot,#tm .tem,.pc,.h2c,.dr{--cu:#fff;--cu-d:#fff}' +
     '.fl{position:relative;isolation:isolate}' +
     '.fl:before{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:50%;width:100vw;margin-left:-50vw;border-radius:0;background:var(--fg),var(--fb)}' +
     '.fl-c{--fb:#F4EFE6;--fg:radial-gradient(38% 46% at 10% 18%,rgba(150,186,232,.5),transparent 72%),radial-gradient(34% 44% at 92% 82%,rgba(238,184,160,.55),transparent 72%)}' +
@@ -1150,7 +1150,7 @@
     '.fl-s .sub,.fl-c .sub{color:#4d586d}' +
     '.eb,.mo-k,.h2k{color:#0b1a38!important}' +
     '.btn.cu{background:#0b0b0f!important;color:#fff!important;border-color:#0b0b0f!important;box-shadow:none!important}' +
-    '.fl-d .btn.cu,.foot .btn.cu,.band .btn.cu,.dr .btn.cu{background:#fff!important;color:#0b1a38!important;border-color:#fff!important}' +
+    '.fl-d .btn.cu,.foot .btn.cu,.dr .btn.cu{background:#fff!important;color:#0b1a38!important;border-color:#fff!important}' +
     '.lf-cbm,.lf-dl svg{color:#0b1a38!important}.lf-dl{border-left-color:#0b1a38!important}.lf-sp.lf-reserved{background:#0b1a38!important}' +
     '.chip.on,.lang button.on{background:#0b0b0f!important;border-color:#0b0b0f!important;color:#fff!important}' +
     /* verre depoli */
@@ -1159,6 +1159,18 @@
     '#tm .tem{background:rgba(255,255,255,.1)!important;-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border:1px solid rgba(255,255,255,.22)!important;box-shadow:0 16px 50px rgba(0,0,0,.22)!important;color:#fff}' +
     '#tm .tem blockquote{color:#fff}#tm .tem .who,#tm .tem blockquote+*{color:#fff!important}' +
     '.h2c{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.35)!important}' +
+    /* horizontal : jamais de decalage de page ; bulle WhatsApp toujours visible */
+    'html,body{overflow-x:clip;max-width:100%}main{overflow-x:clip}' +
+    '.cr{overflow-x:clip;padding:0 0 4px}' +
+    '.wab{position:fixed!important;left:auto!important;right:max(16px,env(safe-area-inset-right,0px))!important;bottom:max(16px,env(safe-area-inset-bottom,0px))!important;z-index:60!important}' +
+    /* questions : fleche au lieu de + */
+    'details summary:after{content:"\\2192"!important;font-family:Poppins,system-ui,sans-serif;font-weight:500!important;font-size:19px!important;line-height:1!important;background:transparent!important;color:#0b1a38!important;border:1.5px solid #0b1a38!important;display:flex!important;align-items:center;justify-content:center;transition:transform .3s,background .3s,color .3s}' +
+    'details[open] summary:after{content:"\\2192"!important;transform:rotate(90deg);background:#0b0b0f!important;color:#fff!important;border-color:#0b0b0f!important}' +
+    /* bloc Un projet : degrade flou fluo et gris, grain */
+    '.band{background:radial-gradient(70% 110% at 12% 45%,#DDF55F 0%,rgba(221,245,95,.9) 38%,rgba(221,245,95,0) 72%),radial-gradient(60% 100% at 92% 78%,#8E8E91 0%,rgba(142,142,145,0) 68%),linear-gradient(120deg,#E6F77A 0%,#B9C07A 45%,#8C8C8F 100%)!important;border:1px solid rgba(255,255,255,.6);border-radius:30px!important;box-shadow:0 24px 60px rgba(40,50,10,.18)!important;color:#0b0b0f}' +
+    '.band:before{background-image:url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/><feColorMatrix values=\'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0\'/></filter><rect width=\'160\' height=\'160\' filter=\'url(%23n)\' opacity=\'.5\'/></svg>")!important;background-size:160px 160px!important;-webkit-mask-image:none!important;mask-image:none!important;opacity:.55;mix-blend-mode:multiply}' +
+    '.band h2,.band p,.band div{color:#0b0b0f!important;text-shadow:none!important}' +
+    '.band .btn.cu{background:#0b0b0f!important;color:#fff!important;border-color:#0b0b0f!important}' +
     /* en-tete */
     '.top{background:rgba(244,239,230,.72)!important;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,.5)!important;box-shadow:none!important}' +
     'html body .top .logo,html body .top .logo.lf-st{flex:none!important;flex-direction:row!important;align-items:center!important;gap:10px!important}' +
