@@ -1134,7 +1134,9 @@
     '.fl{position:relative;isolation:isolate;--fb:#F4EFE6}' +
     '.fl:before{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:50%;width:100vw;margin-left:-50vw;background:var(--fb);border-radius:44px 44px 0 0}' +
     '.fl-c{--fb:#F4EFE6}.fl-s{--fb:#E9DCC4}.fl-n{--fb:#0B1A38}.fl-o{--fb:#35402B}' +
-    '.fl:after{content:"";display:block;height:44px}' +
+    '.fl:not(.mo-full):after{content:"";display:block;height:44px}' +
+    '.fl.mo-full{box-sizing:border-box;height:calc(min(74vh,520px) + 44px)!important;padding-bottom:44px}.fl.mo-full .cap{bottom:calc(clamp(24px,5vw,56px) + 44px)}.fl.mo-full:after{display:block}' +
+    '.lf-strip{display:none!important}' +
     '.h2c{color:#fff}' +
     '.fl.fl-t{margin-top:-44px;padding-top:calc(44px + var(--fp,0px))!important}' +
     '.fl-d,.fl-d .sub,.fl-d p:not(.card p),.fl-d .mo-k{color:#E8E2D4}' +
