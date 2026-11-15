@@ -673,101 +673,6 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
-/* AURIAM HOME – site clair + fond 3D : vue aerienne douce d'un petit village de maisons modulaires et de conteneurs, qui glisse doucement pendant le defilement. */
-(function () {
-  'use strict';
-  var D = document, H = D.documentElement;
-  var BG = 0xf4f1ec;
-  var CSS = '' +
-    'html.lt body{background:#f4f1ec}' +
-    '#nvcv{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;display:block;pointer-events:none;opacity:0;transition:opacity 1.2s}' +
-    'html.lt #nvcv{opacity:1}' +
-    '#nvveil{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(244,241,236,.72),rgba(244,241,236,.84))}' +
-    'html.lt #app{position:relative;z-index:1}' +
-    'html.lt .lf-strip{background:rgba(255,255,255,.7)!important;color:#0b1a38}' +
-    '@media(prefers-reduced-motion:reduce){#nvcv{transition:none}}';
-
-  function hasGL() { try { var c = D.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; } }
-  function off() { H.classList.remove('lt'); var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }
-
-  function start() {
-    H.classList.add('lt');
-    var st = D.createElement('style'); st.textContent = CSS; D.head.appendChild(st);
-    if (!hasGL()) return;
-    var cv = D.createElement('canvas'); cv.id = 'nvcv'; cv.setAttribute('aria-hidden', 'true');
-    var vl = D.createElement('div'); vl.id = 'nvveil';
-    D.body.insertBefore(vl, D.body.firstChild); D.body.insertBefore(cv, D.body.firstChild);
-    if (window.THREE) return scene(cv);
-    var s = D.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    s.onload = function () { scene(cv); }; s.onerror = function () { var a = D.getElementById('nvcv'), b = D.getElementById('nvveil'); if (a) a.remove(); if (b) b.remove(); }; D.head.appendChild(s);
-  }
-
-  function scene(cv) {
-    var T3 = window.THREE, ren;
-    if (!T3) return off();
-    try { ren = new T3.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { return off(); }
-    var small = Math.min(innerWidth, innerHeight) < 700;
-    ren.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2));
-    ren.shadowMap.enabled = !small; ren.shadowMap.type = T3.PCFSoftShadowMap;
-    var sc = new T3.Scene(); sc.background = new T3.Color(BG); sc.fog = new T3.Fog(BG, 22, 62);
-    var cam = new T3.PerspectiveCamera(36, 1, .1, 120);
-    sc.add(new T3.HemisphereLight(0xffffff, 0xd9d2c6, .85));
-    var d = new T3.DirectionalLight(0xfff1dc, .85); d.position.set(10, 18, 8); d.castShadow = true; d.shadow.mapSize.set(2048, 2048);
-    var sh = d.shadow.camera; sh.left = -30; sh.right = 30; sh.top = 30; sh.bottom = -30; sh.far = 70; d.shadow.radius = 4; sc.add(d);
-    var gr = new T3.Mesh(new T3.PlaneGeometry(200, 200), new T3.MeshStandardMaterial({ color: 0xe9e5dc, roughness: 1 })); gr.rotation.x = -Math.PI / 2; gr.receiveShadow = true; sc.add(gr);
-    function M(c, r, m) { return new T3.MeshStandardMaterial({ color: c, roughness: r == null ? .75 : r, metalness: m || 0 }); }
-    var mWhite = M(0xfbfaf7), mCream = M(0xefe6d6), mDark = M(0x2a3345, .5), mGlass = M(0x8fa3bd, .25, .2), mWood = M(0xb98a5e),
-      mRoad = M(0xd8d3c8, 1), mLot = M(0xf1eee7, 1), mGrass = M(0xcfd8c2, 1), mTree = M(0x9db38a, 1), mTrunk = M(0x8a7a66),
-      cols = [M(0xe8793c, .55, .25), M(0x1f3a63, .55, .25), M(0xd9cdb6, .6, .2), M(0x6e8aa8, .55, .25), M(0xf0a066, .55, .2)];
-    function bx(w, h, dd, mat, x, y, z) { var m = new T3.Mesh(new T3.BoxGeometry(w, h, dd), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
-    function house(seed) {
-      var g = new T3.Group(), w = 3.4 + (seed % 3) * .5, body = seed % 2 ? mWhite : mCream;
-      g.add(bx(w, 1.25, 1.7, body, 0, .62, 0)); g.add(bx(w + .3, .12, 2, mDark, 0, 1.31, 0));
-      g.add(bx(w * .42, .62, .05, mGlass, -w * .2, .75, .86)); g.add(bx(.46, .98, .05, mWood, w * .3, .5, .86));
-      if (seed % 3 === 0) g.add(bx(w * .8, .05, 1.1, mWood, 0, .03, 1.5));
-      return g;
-    }
-    function cont(seed) {
-      var g = new T3.Group(), m = cols[seed % cols.length]; g.add(bx(4, 1.5, 1.6, m, 0, .75, 0));
-      for (var i = 0; i < 9; i++) g.add(bx(.05, 1.4, .04, mDark, -1.75 + i * .44, .75, .81));
-      return g;
-    }
-    function tree(x, z, s) { var g = new T3.Group(); g.add(bx(.14, .5 * s, .14, mTrunk, 0, .25 * s, 0)); var c = new T3.Mesh(new T3.IcosahedronGeometry(.55 * s, 0), mTree); c.position.y = .85 * s; c.castShadow = true; g.add(c); g.position.set(x, 0, z); return g; }
-    var rnd = (function (s) { return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })(7);
-    var ROW = 6.4, COL = 7.4, i, j;
-    for (i = -4; i <= 4; i++) { var rd = new T3.Mesh(new T3.PlaneGeometry(200, 1.4), mRoad); rd.rotation.x = -Math.PI / 2; rd.position.set(0, .012, i * ROW + ROW / 2); rd.receiveShadow = true; sc.add(rd); }
-    for (j = -6; j <= 6; j++) { var rv = new T3.Mesh(new T3.PlaneGeometry(1.2, 200), mRoad); rv.rotation.x = -Math.PI / 2; rv.position.set(j * COL + COL / 2, .013, 0); rv.receiveShadow = true; sc.add(rv); }
-    for (i = -4; i <= 4; i++) for (j = -6; j <= 6; j++) {
-      var cx = j * COL, cz = i * ROW, r = rnd();
-      var lot = new T3.Mesh(new T3.PlaneGeometry(COL - 1.6, ROW - 1.8), r < .22 ? mGrass : mLot); lot.rotation.x = -Math.PI / 2; lot.position.set(cx, .02, cz); lot.receiveShadow = true; sc.add(lot);
-      var o;
-      if (r < .22) { sc.add(tree(cx - 1.2, cz, 1.2 + rnd() * .5)); sc.add(tree(cx + 1.1, cz + .5, 1 + rnd() * .5)); sc.add(tree(cx, cz - 1, .9 + rnd() * .4)); continue; }
-      if (r < .62) { o = house(Math.floor(rnd() * 9)); } else { o = cont(Math.floor(rnd() * 20)); if (rnd() < .35) { var o2 = cont(Math.floor(rnd() * 20)); o2.position.y = 1.5; o.add(o2); } }
-      o.position.set(cx, .02, cz); o.rotation.y = rnd() < .5 ? 0 : Math.PI; sc.add(o);
-      if (rnd() < .5) sc.add(tree(cx + (rnd() < .5 ? -2.4 : 2.4), cz + 1.2, .9 + rnd() * .4));
-    }
-    var CP = [[-16, 24, 28], [-6, 16, 20], [6, 12, 15], [16, 17, 20], [3, 27, 30]], CT = [[0, 0, 0], [-1, 0, -2], [4, 0, -3], [7, 0, -1], [0, 0, -3]];
-    function sm(t) { return t * t * (3 - 2 * t); }
-    function lk(k, s) { var n = Math.min(Math.floor(s), 3), f = sm(s - n), a = k[n], b = k[n + 1]; return a.map(function (v, q) { return v + (b[q] - v) * f; }); }
-    var mx = 0, my = 0, cur = 0, rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches, t0 = performance.now(), lw = 0, lh = 0, forced = null;
-    addEventListener('pointermove', function (e) { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
-    function res() { var w = innerWidth, h = innerHeight; if (w === lw && h === lh) return; lw = w; lh = h; ren.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
-    function stage() { var m = Math.max(1, D.documentElement.scrollHeight - innerHeight); return 4 * Math.max(0, Math.min(1, scrollY / m)); }
-    function loop(now) {
-      requestAnimationFrame(loop);
-      if (D.hidden) return;
-      res();
-      var t = (now - t0) / 1000, tgt = forced == null ? stage() : forced;
-      cur = rm ? tgt : cur + (tgt - cur) * .06;
-      var mob = cam.aspect < .85, p = lk(CP, cur), q = lk(CT, cur), k = mob ? 1.35 : 1, dr = rm ? 0 : Math.sin(t * .12) * 1.2;
-      cam.position.set(p[0] * k + dr + mx * .8, p[1] * (mob ? 1.15 : 1) + my * -.5, p[2] * k); cam.lookAt(q[0], q[1], q[2]);
-      ren.render(sc, cam);
-    }
-    window.__NEO = { set: function (v) { forced = v; cur = v; } };
-    requestAnimationFrame(loop);
-  }
-  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', start); else start();
-})();
 /* AURIAM HOME – menu latéral en verre : icônes fines, rangées compactes, groupes séparés, bouton devis fixe en bas. */
 (function () {
   'use strict';
@@ -1217,6 +1122,59 @@
     var s = build(hero, app); hero.parentNode.insertBefore(s, hero); parallax(s);
   }
   function ask() { if (!pend) pend = W.requestAnimationFrame(function () { setTimeout(pass, 70); }); }
+  function boot() { var app = D.getElementById('app'); if (!app) return setTimeout(boot, 150); new MutationObserver(ask).observe(app, { childList: true, subtree: true }); ask(); }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+/* flow.js - le fond change a chaque section (creme, bleu nuit, sable, vert olive), coins arrondis qui se recouvrent ; petit logo en haut, grand nom en bas. */
+(function () {
+  'use strict';
+  var W = window, D = document, styled = false, pend = 0;
+  var CSS = '' +
+    'html,body{background:#F4EFE6}' +
+    '.fl{position:relative;isolation:isolate;--fb:#F4EFE6}' +
+    '.fl:before{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:50%;width:100vw;margin-left:-50vw;background:var(--fb);border-radius:44px 44px 0 0}' +
+    '.fl-c{--fb:#F4EFE6}.fl-s{--fb:#E9DCC4}.fl-n{--fb:#0B1A38}.fl-o{--fb:#35402B}' +
+    '.fl.fl-t{margin-top:-44px;padding-top:calc(44px + var(--fp,0px))!important}' +
+    '.fl-d,.fl-d .sub,.fl-d p:not(.card p),.fl-d .mo-k{color:#E8E2D4}' +
+    '.fl-d h1,.fl-d h2,.fl-d .mo-big,.fl-d .pt{color:#fff!important}' +
+    '.fl-d .mo-k,.fl-d .k,.fl-d .badge{color:#FF9A5C!important}' +
+    '.fl-d .mo-l{color:#fff;border-bottom-color:#FF6B2C}' +
+    '.fl-d .mo-st b{color:#fff}.fl-d .mo-st span{color:#C9C3B4}' +
+    '.fl-d .card p,.fl-d .card h3,.fl-d .card .sp{color:inherit}' +
+    '.fl-s .sub,.fl-c .sub{color:#5d6679}' +
+    '.top{background:rgba(244,239,230,.86)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:0!important;box-shadow:none!important}' +
+    '.top .logo svg,.top .logo img{height:30px!important;width:auto!important}.top .logo span b{font-size:13px!important;letter-spacing:.2em}.top .logo span i{font-size:11px!important;letter-spacing:.3em}' +
+    '.top .wrap{min-height:64px!important;height:64px}' +
+    '.foot .wm{position:relative;margin:34px auto 0;width:min(1240px,calc(100% - 40px));padding:10px 0 4px;display:flex;align-items:flex-end;gap:2vw;overflow:hidden;border-top:1px solid rgba(255,255,255,.14)}' +
+    '.foot .wm b{display:block;font:600 min(calc((100vw - 44px)/7.3),185px)/.9 Poppins,system-ui,sans-serif;letter-spacing:-.045em;color:#fff;text-transform:none;margin:0;white-space:nowrap}' +
+    '.foot .wm b i{font-style:normal;color:#FF6B2C}' +
+    '.foot{border-top:0!important;background:#0B1A38!important}' +
+    '.foot:before{display:none!important}';
+  function ST() { if (styled) return; var s = D.createElement('style'); s.textContent = CSS; D.head.appendChild(s); styled = true; }
+  function mark(el, c, dark) { if (!el || el.classList.contains('fl')) return; el.classList.add('fl', 'fl-t', c); if (dark) el.classList.add('fl-d'); }
+  function pass() {
+    pend = 0;
+    var app = D.getElementById('app'), m = app && app.querySelector('main'); if (!m || !m.querySelector('.h2s')) return;
+    ST();
+    var ch = [].slice.call(m.children);
+    ch.forEach(function (e) {
+      if (e.classList.contains('h2s')) { e.classList.add('fl', 'fl-c'); return; }
+      if (e.classList.contains('mo-p')) return mark(e, 'fl-n', 1);
+      if (e.classList.contains('mo-f')) return mark(e, 'fl-o', 1);
+      if (e.classList.contains('sh')) return;
+      if (e.classList.contains('mo-c')) return mark(e, 'fl-s');
+      if (e.classList.contains('mo-x')) return mark(e, 'fl-c');
+      if (e.classList.contains('sec') || e.classList.contains('wrap')) {
+        if (!e.offsetHeight) return;
+        if (e.querySelector('.tem,#tm')) return mark(e, 'fl-o', 1);
+        if (e.querySelector('a[href^="#/c/"]')) return mark(e, 'fl-s');
+        mark(e, 'fl-c');
+      }
+    });
+    var f = D.querySelector('footer.foot');
+    if (f && !f.querySelector('.wm')) { var w = D.createElement('div'); w.className = 'wm'; w.setAttribute('aria-hidden', 'true'); w.innerHTML = '<b>AURIAM HOME<i>.</i></b>'; f.appendChild(w); }
+  }
+  function ask() { if (!pend) pend = W.requestAnimationFrame(function () { setTimeout(pass, 140); }); }
   function boot() { var app = D.getElementById('app'); if (!app) return setTimeout(boot, 150); new MutationObserver(ask).observe(app, { childList: true, subtree: true }); ask(); }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot); else boot();
 })();
