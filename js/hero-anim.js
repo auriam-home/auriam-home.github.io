@@ -1232,9 +1232,9 @@ return {home:home,maritime:maritime,office:office,cut:cut};
     '.h2m.h3{background:linear-gradient(180deg,#F8F4EC 0%,#EAE2D2 100%);aspect-ratio:16/7.4}' +
     '.h2m.h3:after{display:none}' +
     '.h2st{position:absolute;inset:0;z-index:1;touch-action:pan-y;cursor:grab}.h2st:active{cursor:grabbing}' +
-    '.h2st canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:0}' +
-    '.h2fb{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:none}' +
-    '.h2st.nogl .h2fb{display:block}.h2st.nogl canvas{display:none}' +
+    '.h2st canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:0;z-index:1}' +
+    '.h2fb{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center 60%;z-index:2;opacity:1;transition:opacity .7s;pointer-events:none}' +
+    '.h2st.ready .h2fb{opacity:0}.h2st.nogl .h2fb{opacity:1!important}.h2st.nogl canvas{display:none}' +
     '.h3tabs{position:absolute;left:20px;top:20px;z-index:3;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100% - 300px)}' +
     '.h3tabs button{font:inherit;font-size:13.5px;font-weight:500;color:#0b1a38;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(11,26,56,.14);border-radius:999px;padding:10px 18px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}' +
     '.h3tabs button:hover{background:rgba(255,255,255,.9)}.h3tabs button[aria-pressed=true]{background:#0b0b0f;color:#fff;border-color:#0b0b0f}' +
@@ -1267,6 +1267,7 @@ return {home:home,maritime:maritime,office:office,cut:cut};
   }
   function hasGL() { try { var c = D.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; } }
 
+  try { setTimeout(function () { if (hasGL()) loadT().catch(function () {}); }, 0); } catch (e) {}
   W.AH_STAGE = function (m, en, imgEl) {
     var d = TX[en ? 'en' : 'fr'];
     if (!D.getElementById('h3css')) { var st = D.createElement('style'); st.id = 'h3css'; st.textContent = CSS; D.head.appendChild(st); }
@@ -1625,7 +1626,7 @@ return {home:home,maritime:maritime,office:office,cut:cut};
     '.bn .card .pr{font-weight:500!important;font-size:14px!important;letter-spacing:0!important;opacity:.85}' +
     '.fl-d .bn .card{border-color:rgba(255,255,255,.28)!important}' +
     /* sections empilees */
-    '.stk{position:sticky;will-change:transform}' +
+    '.stk{position:sticky}' +
     '.rv{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}' +
     '@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}';
   var done = false, io, ro;
@@ -1636,7 +1637,7 @@ return {home:home,maritime:maritime,office:office,cut:cut};
   }
   function tops() {
     var vh = W.innerHeight || 800;
-    [].forEach.call(D.querySelectorAll('main>.stk'), function (e) { var h = e.offsetHeight; e.style.top = Math.min(0, vh - h) + 'px'; });
+    [].forEach.call(D.querySelectorAll('main>.stk'), function (e) { var h = e.offsetHeight; var tall = h > vh * 1.15; e.style.top = tall ? 'auto' : Math.min(0, vh - h) + 'px'; e.style.position = tall ? 'relative' : ''; });
   }
   function pass() {
     pend = 0;
@@ -1664,7 +1665,10 @@ return {home:home,maritime:maritime,office:office,cut:cut};
     if (W.IntersectionObserver) io = new IntersectionObserver(function (es) { es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }); }, { threshold: .12 });
     if (W.ResizeObserver) ro = new ResizeObserver(function () { tops(); });
     new MutationObserver(ask).observe(app, { childList: true, subtree: true });
-    W.addEventListener('resize', function () { tops(); }); W.addEventListener('load', ask); ask();
+    var tk = 0; function sc() { if (!tk) tk = W.requestAnimationFrame(function () { tk = 0; tops(); }); }
+    W.addEventListener('scroll', sc, { passive: true }); W.addEventListener('resize', sc); W.addEventListener('orientationchange', sc);
+    if (W.visualViewport) W.visualViewport.addEventListener('resize', sc);
+    W.addEventListener('load', ask); var n = 0, iv = setInterval(function () { tops(); if (++n > 40) clearInterval(iv); }, 500); ask();
   }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot); else boot();
 })();
